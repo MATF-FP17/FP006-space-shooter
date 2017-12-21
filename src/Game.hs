@@ -18,11 +18,15 @@ window = InWindow "SpaceShooter" (width, height) (offset, offset)
 background :: Color
 background = black
 
+data PlayerState = Player
+  { position :: (Float, Float) -- player coordinates
+  , speed :: Float             -- player movement speed
+  } deriving Show
+  
 
 -- | Data describing the state of the game. 
 data GameState = Game
-  { player :: (Float, Float)   -- player coordinates
-  , speed :: Float             -- player movement speed
+  { player :: PlayerState       -- state of the player
   -- enemies :: [Enemy]         -- list of enemies
   -- obstcales :: [Obstacle]    -- list of obstcales
   -- playerRockets :: [Rockets] -- list of rocket fired
@@ -35,8 +39,7 @@ data GameState = Game
 -- | The starting state for the game.
 initialState :: GameState
 initialState = Game
-  { player = (0,(-150))
-  , speed = 5
+  { player = Player (0,(-150)) 5
   -- enemies = []
   -- obstacle = []
   -- playerRockets = []
@@ -55,7 +58,7 @@ render game =
   pictures [walls,spaceship]
   where
     -- The player
-    (px,py) = player game
+    (px,py) = position $ player game
     
     spaceship :: Picture
     spaceship = 
@@ -88,6 +91,14 @@ update seconds game = if not (paused game)
 fps :: Int
 fps = 60
 
+-- FIX: Currently unused
+movePlayer :: Float -> Float -> PlayerState -> PlayerState
+movePlayer moveX moveY player = player { position = (nx', ny') }
+  where
+    (nx,ny) = position player
+    nx' = nx + moveX * (speed player) -- TODO: fix for update to move by seconds passed
+    ny' = ny + moveY * (speed player) -- TODO: fix for update to move by seconds passed
+
 -- | Respond to key events.
 handleKeys :: Event -> GameState -> GameState
 
@@ -97,28 +108,34 @@ handleKeys (EventKey (Char 'p') Down _ _) game =
   
 -- Move player
 handleKeys (EventKey (Char 'w') Down _ _) game =
-  game { player = (nx, ny') }
-    where
-      (nx,ny) = player game
-      ny' = ny + (speed game) -- TODO: fix for update to move by seconds passed
-      
+  --game { player = movePlayer 0 1 (player game) }  -- FIX: Use this??
+  game { player = (player game) { position = (nx,ny') } }
+  where
+    (nx,ny) = position $ player game
+    ny' = ny + (speed $ player game) -- TODO: fix for update to move by seconds passed
+    
 handleKeys (EventKey (Char 's') Down _ _) game =
-  game { player = (nx, ny') }
+  --game { player = movePlayer 0 (-1) (player game) }  -- FIX: Use this??
+  game { player = (player game) { position = (nx,ny') } }
     where
-      (nx,ny) = player game
-      ny' = ny - (speed game) -- TODO: fix for update to move by seconds passed
+      (nx,ny) = position $ player game
+      ny' = ny - (speed $ player game) -- TODO: fix for update to move by seconds passed
 
 handleKeys (EventKey (Char 'd') Down _ _) game =
-  game { player = (nx', ny) }
+  --game { player = movePlayer 1 0 (player game) }  -- FIX: Use this??
+  game { player = (player game) { position = (nx',ny) } }
     where
-      (nx,ny) = player game
-      nx' = nx + (speed game) -- TODO: fix for update to move by seconds passed
+      (nx,ny) = position $ player game
+      nx' = nx + (speed $ player game) -- TODO: fix for update to move by seconds passed
       
 handleKeys (EventKey (Char 'a') Down _ _) game =
-  game { player = (nx', ny) }
+  --game { player = movePlayer (-1) 0 (player game) }  -- FIX: Use this??
+  game { player = (player game) { position = (nx',ny) } }
     where
-      (nx,ny) = player game
-      nx' = nx - (speed game) -- TODO: fix for update to move by seconds passed
+      (nx,ny) = position $ player game
+      nx' = nx - (speed $ player game) -- TODO: fix for update to move by seconds passed
+      
+
       
 -- Do nothing for all other events.
 handleKeys _ game = game
