@@ -6,11 +6,21 @@ import Graphics.Gloss
 --import Graphics.Gloss.Data.ViewPort
 import Graphics.Gloss.Interface.Pure.Game
 import Data.Set
+import Data.Function
+
+(/.) = (/) `on` fromIntegral -- divides two Integrals as Floats
 
 width, height, offset :: Int
 width = 400 
 height = 600
 offset = 100
+
+wallBoundWidth, shipSizeWh, shipSizeHt, shipSizeHb :: Float
+wallBoundWidth = 20
+shipSizeWh = 15   -- half of spaceship's width
+shipSizeHt = 25   -- spaceship's length of front end
+shipSizeHb = 15   -- spaceship's length of back end
+
 
 window :: Display
 window = InWindow "SpaceShooter" (width, height) (offset, offset)
@@ -18,17 +28,17 @@ window = InWindow "SpaceShooter" (width, height) (offset, offset)
 background :: Color
 background = black
 
---TODO: replace (Flaot, Float) with Coordinate and SpeedVector where appropriate
+--TODO: replace (Float, Float) with Coordinate and SpeedVector where appropriate
 
 data PlayerState = Player
   { pPosition :: (Float, Float) -- player coordinates
   , pSpeed :: Float             -- player movement speed
-  } deriving Show              -- TODO: debug output
+  } deriving Show               -- TODO: debug output
 
 data Rocket = Rocket
   { rPosition :: (Float, Float) -- rocket coodrinates
   , rSpeed :: (Float, Float)    -- speed vector
-  } deriving Show              -- TODO: debug output
+  } deriving Show               -- TODO: debug output
 
 
 -- | Data describing the state of the game. 
@@ -75,29 +85,30 @@ render game =
   where
     -- The player
     (px,py) = pPosition $ player game
-
+    w = shipSizeWh
+    ht = shipSizeHt
+    hb = shipSizeHb
+      
     spaceship :: Picture
     spaceship = 
       translate px py $
         color blue $ 
-          polygon [(0,25),(15,(-15)),(0,0),((-15),(-15)),(0,25)]
+          polygon [(0,ht),(w,-hb),(0,0),(-w,-hb),(0,ht)]
 
     --  The bottom and top walls.
     wall :: Float -> Picture
     wall offset =
       translate offset 0 $
         color wallColor $
-          rectangleSolid 10 580
+          rectangleSolid wallBoundWidth (fromIntegral height)
 
     wallColor = greyN 0.5
-    walls = pictures [wall 185, wall (-185)]
+    walls = pictures [wall (width /. 2), 
+                      wall ( (-width) /. 2)]
 
     -- Player rockets
     rockets :: Picture
-    rockets = pictures allRockets
-
-    allRockets :: [Picture]
-    allRockets = Prelude.map drawRocket (playerRockets game)
+    rockets = pictures $ Prelude.map drawRocket (playerRockets game) 
 
 
 
@@ -107,17 +118,18 @@ updatePlayer keysPressed seconds player =
   player { pPosition = (nx', ny') }
     where
       (nx, ny) = pPosition player
-
+      w = wallBoundWidth / 2 + shipSizeWh
+      
       nx' :: Float
       nx' = 
         if (member (Char 'd') keysPressed) 
           || (member (SpecialKey KeyRight) keysPressed)
         then
-          (nx + seconds * pSpeed player)
+          min (nx + seconds * pSpeed player) (width /. 2 - w)
         else if (member (Char 'a') keysPressed)
           || (member (SpecialKey KeyLeft) keysPressed)
         then
-          (nx - seconds * pSpeed player)
+          max (nx - seconds * pSpeed player) ((-width) /. 2 + w)
         else 
           nx
 
@@ -126,11 +138,11 @@ updatePlayer keysPressed seconds player =
         if (member (Char 'w') keysPressed) 
           || (member (SpecialKey KeyUp) keysPressed)
         then
-          (ny + seconds * pSpeed player)
+          min (ny + seconds * pSpeed player) (height /. 2 - shipSizeHt)
         else if (member (Char 's') keysPressed)
           || (member (SpecialKey KeyDown) keysPressed)
         then
-          (ny - seconds * pSpeed player)
+          max (ny - seconds * pSpeed player) (-height /. 2 + shipSizeHb)
         else 
           ny
 
@@ -186,8 +198,8 @@ rocketInBounds rocket =
     True
   where
     (rx,ry) = rPosition rocket
-    yLimit = fromIntegral height / 2 - 20  -- FIX: (-20) is for visual test
-    xLimit = fromIntegral width / 2 - 20   -- FIX: (-20) is for visual test
+    yLimit = height /. 2
+    xLimit = width /. 2
 
 
 deleteOutOfBoundsRockets :: [Rocket] -> [Rocket]
