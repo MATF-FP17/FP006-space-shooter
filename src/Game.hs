@@ -5,7 +5,7 @@ module Game
 import Graphics.Gloss
 --import Graphics.Gloss.Data.ViewPort
 import Graphics.Gloss.Interface.Pure.Game
-
+import Data.Set
 
 width, height, offset :: Int
 width = 400 
@@ -33,18 +33,20 @@ data GameState = Game
   -- enemyRockets :: [Rockets]  -- list of rocket fired
   -- ....
   -- timeFromLastAddedEnemy :: Float 
-  , paused :: Bool
+  , keysPressed :: Set Key      -- keeps track of all keys currently held down
+  , paused :: Bool              -- shows if the game is currently paused
   } deriving Show
     
 -- | The starting state for the game.
 initialState :: GameState
 initialState = Game
-  { player = Player (0,(-150)) 5
+  { player = Player (0,(-150)) 50
   -- enemies = []
   -- obstacle = []
   -- playerRockets = []
   -- enemiesRockets = []
   -- timeFromLastAddedEnemy = 0
+  , keysPressed = empty
   , paused = False
   }
                     
@@ -76,13 +78,51 @@ render game =
     wallColor = greyN 0.5
     walls = pictures [wall 185, wall (-185)]
     
+    
+-- | Update the player
+updatePlayer :: Set Key -> Float -> PlayerState -> PlayerState
+updatePlayer keysPressed seconds player =
+  player { position = (nx', ny') }
+    where
+      (nx, ny) = position player
+
+      nx' :: Float
+      nx' = 
+        if (member (Char 'd') keysPressed) 
+          || (member (SpecialKey KeyRight) keysPressed)
+        then
+          (nx + seconds * speed player)
+        else if (member (Char 'a') keysPressed)
+          || (member (SpecialKey KeyLeft) keysPressed)
+        then
+          (nx - seconds * speed player)
+        else 
+          nx
+      
+      ny' :: Float
+      ny' = 
+        if (member (Char 'w') keysPressed) 
+          || (member (SpecialKey KeyUp) keysPressed)
+        then
+          (ny + seconds * speed player)
+        else if (member (Char 's') keysPressed)
+          || (member (SpecialKey KeyDown) keysPressed)
+        then
+          (ny - seconds * speed player)
+        else 
+          ny
+          
+-- | Wrapper: Calls updatePlayer for GameState
+updatePlayerInGame :: Float -> GameState -> GameState
+updatePlayerInGame seconds game =
+  game { player = updatePlayer (keysPressed game) seconds (player game) }
 
 
 -- | Update the game
 update :: Float -> GameState -> GameState 
 update seconds game = if not (paused game) 
                       then 
-                        game -- TODO: call updates here
+                        updatePlayerInGame seconds game -- TODO: call updates here
                       else 
                         game
 
@@ -91,13 +131,6 @@ update seconds game = if not (paused game)
 fps :: Int
 fps = 60
 
--- FIX: Currently unused
-movePlayer :: Float -> Float -> PlayerState -> PlayerState
-movePlayer moveX moveY player = player { position = (nx', ny') }
-  where
-    (nx,ny) = position player
-    nx' = nx + moveX * (speed player) -- TODO: fix for update to move by seconds passed
-    ny' = ny + moveY * (speed player) -- TODO: fix for update to move by seconds passed
 
 -- | Respond to key events.
 handleKeys :: Event -> GameState -> GameState
@@ -105,36 +138,16 @@ handleKeys :: Event -> GameState -> GameState
 -- For an 'p' keypress, pause the game
 handleKeys (EventKey (Char 'p') Down _ _) game =
   game { paused = not (paused game) }
-  
--- Move player
-handleKeys (EventKey (Char 'w') Down _ _) game =
-  --game { player = movePlayer 0 1 (player game) }  -- FIX: Use this??
-  game { player = (player game) { position = (nx,ny') } }
-  where
-    (nx,ny) = position $ player game
-    ny' = ny + (speed $ player game) -- TODO: fix for update to move by seconds passed
-    
-handleKeys (EventKey (Char 's') Down _ _) game =
-  --game { player = movePlayer 0 (-1) (player game) }  -- FIX: Use this??
-  game { player = (player game) { position = (nx,ny') } }
-    where
-      (nx,ny) = position $ player game
-      ny' = ny - (speed $ player game) -- TODO: fix for update to move by seconds passed
 
-handleKeys (EventKey (Char 'd') Down _ _) game =
-  --game { player = movePlayer 1 0 (player game) }  -- FIX: Use this??
-  game { player = (player game) { position = (nx',ny) } }
-    where
-      (nx,ny) = position $ player game
-      nx' = nx + (speed $ player game) -- TODO: fix for update to move by seconds passed
-      
-handleKeys (EventKey (Char 'a') Down _ _) game =
-  --game { player = movePlayer (-1) 0 (player game) }  -- FIX: Use this??
-  game { player = (player game) { position = (nx',ny) } }
-    where
-      (nx,ny) = position $ player game
-      nx' = nx - (speed $ player game) -- TODO: fix for update to move by seconds passed
-      
+handleKeys (EventKey (Char 'p') Up _ _) game = game
+
+  
+handleKeys (EventKey key Down _ _) game =
+  game { keysPressed = insert key (keysPressed game) }
+  
+handleKeys (EventKey key Up _ _) game =
+  game { keysPressed = delete key (keysPressed game) }
+  
 
       
 -- Do nothing for all other events.
