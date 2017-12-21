@@ -22,6 +22,7 @@ background = black
 -- | Data describing the state of the game. 
 data GameState = Game
   { player :: (Float, Float)   -- player coordinates
+  , speed :: Float             -- player movement speed
   -- enemies :: [Enemy]         -- list of enemies
   -- obstcales :: [Obstacle]    -- list of obstcales
   -- playerRockets :: [Rockets] -- list of rocket fired
@@ -35,6 +36,7 @@ data GameState = Game
 initialState :: GameState
 initialState = Game
   { player = (0,(-150))
+  , speed = 5
   -- enemies = []
   -- obstacle = []
   -- playerRockets = []
@@ -92,7 +94,32 @@ handleKeys :: Event -> GameState -> GameState
 -- For an 'p' keypress, pause the game
 handleKeys (EventKey (Char 'p') Down _ _) game =
   game { paused = not (paused game) }
-   
+  
+-- Move player
+handleKeys (EventKey (Char 'w') Down _ _) game =
+  game { player = (nx, ny') }
+    where
+      (nx,ny) = player game
+      ny' = ny + (speed game) -- TODO: fix for update to move by seconds passed
+      
+handleKeys (EventKey (Char 's') Down _ _) game =
+  game { player = (nx, ny') }
+    where
+      (nx,ny) = player game
+      ny' = ny - (speed game) -- TODO: fix for update to move by seconds passed
+
+handleKeys (EventKey (Char 'd') Down _ _) game =
+  game { player = (nx', ny) }
+    where
+      (nx,ny) = player game
+      nx' = nx + (speed game) -- TODO: fix for update to move by seconds passed
+      
+handleKeys (EventKey (Char 'a') Down _ _) game =
+  game { player = (nx', ny) }
+    where
+      (nx,ny) = player game
+      nx' = nx - (speed game) -- TODO: fix for update to move by seconds passed
+      
 -- Do nothing for all other events.
 handleKeys _ game = game
 
