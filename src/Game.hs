@@ -18,24 +18,31 @@ window = InWindow "SpaceShooter" (width, height) (offset, offset)
 background :: Color
 background = black
 
-data PlayerState = Player
-  { position :: (Float, Float) -- player coordinates
-  , speed :: Float             -- player movement speed
-  } deriving Show
-  
+--TODO: replace (Flaot, Float) with Coordinate and SpeedVector where appropriate
 
+data PlayerState = Player
+  { pPosition :: (Float, Float) -- player coordinates
+  , pSpeed :: Float             -- player movement speed
+  } deriving Show              -- TODO: debug output
+  
+data Rocket = Rocket
+  { rPosition :: (Float, Float) -- rocket coodrinates
+  , rSpeed :: (Float, Float)    -- speed vector
+  } deriving Show              -- TODO: debug output
+  
+ 
 -- | Data describing the state of the game. 
 data GameState = Game
   { player :: PlayerState       -- state of the player
   -- enemies :: [Enemy]         -- list of enemies
   -- obstcales :: [Obstacle]    -- list of obstcales
-  -- playerRockets :: [Rockets] -- list of rocket fired
-  -- enemyRockets :: [Rockets]  -- list of rocket fired
+  , playerRockets :: [Rocket]   -- list of rocket fired
+  -- enemyRockets :: [Rocket]   -- list of rocket fired
   -- ....
   -- timeFromLastAddedEnemy :: Float 
   , keysPressed :: Set Key      -- keeps track of all keys currently held down
   , paused :: Bool              -- shows if the game is currently paused
-  } deriving Show
+  } deriving Show               -- TODO: debug output
     
 -- | The starting state for the game.
 initialState :: GameState
@@ -43,7 +50,7 @@ initialState = Game
   { player = Player (0,(-150)) 50
   -- enemies = []
   -- obstacle = []
-  -- playerRockets = []
+  , playerRockets = []
   -- enemiesRockets = []
   -- timeFromLastAddedEnemy = 0
   , keysPressed = empty
@@ -60,7 +67,7 @@ render game =
   pictures [walls,spaceship]
   where
     -- The player
-    (px,py) = position $ player game
+    (px,py) = pPosition $ player game
     
     spaceship :: Picture
     spaceship = 
@@ -78,24 +85,28 @@ render game =
     wallColor = greyN 0.5
     walls = pictures [wall 185, wall (-185)]
     
+    -- TODO: Draw rockets
+    
+    
+    
     
 -- | Update the player
 updatePlayer :: Set Key -> Float -> PlayerState -> PlayerState
 updatePlayer keysPressed seconds player =
-  player { position = (nx', ny') }
+  player { pPosition = (nx', ny') }
     where
-      (nx, ny) = position player
+      (nx, ny) = pPosition player
 
       nx' :: Float
       nx' = 
         if (member (Char 'd') keysPressed) 
           || (member (SpecialKey KeyRight) keysPressed)
         then
-          (nx + seconds * speed player)
+          (nx + seconds * pSpeed player)
         else if (member (Char 'a') keysPressed)
           || (member (SpecialKey KeyLeft) keysPressed)
         then
-          (nx - seconds * speed player)
+          (nx - seconds * pSpeed player)
         else 
           nx
       
@@ -104,11 +115,11 @@ updatePlayer keysPressed seconds player =
         if (member (Char 'w') keysPressed) 
           || (member (SpecialKey KeyUp) keysPressed)
         then
-          (ny + seconds * speed player)
+          (ny + seconds * pSpeed player)
         else if (member (Char 's') keysPressed)
           || (member (SpecialKey KeyDown) keysPressed)
         then
-          (ny - seconds * speed player)
+          (ny - seconds * pSpeed player)
         else 
           ny
           
@@ -116,13 +127,37 @@ updatePlayer keysPressed seconds player =
 updatePlayerInGame :: Float -> GameState -> GameState
 updatePlayerInGame seconds game =
   game { player = updatePlayer (keysPressed game) seconds (player game) }
+  
+-- | Update a rocket
+updateRocket :: Float -> Rocket -> Rocket
+updateRocket seconds rocket =
+  rocket { rPosition = (nx', ny') }
+    where
+      (nx,ny) = rPosition rocket
+      (sx,sy) = rSpeed rocket
+      nx' = nx + seconds * sx
+      ny' = ny + seconds * sy
 
+-- | Update all rockets fired by player for GameState
+updatePlayerRocketsInGame :: Float -> GameState -> GameState
+updatePlayerRocketsInGame seconds game = 
+  game { playerRockets = updateAllRockets seconds (playerRockets game) }
+    where
+      updateAllRockets :: Float -> [Rocket] -> [Rocket]
+      updateAllRockets seconds lstR = Prelude.map (updateRocket seconds) lstR 
+      
+-- | Adds new rocket when fired
+addRocket :: (Float,Float) -> (Float,Float) -> [Rocket] -> [Rocket]
+addRocket (px,py) (sx,sy) rockets = (Rocket (px,py) (sx,sy)) : rockets
 
+ 
 -- | Update the game
 update :: Float -> GameState -> GameState 
 update seconds game = if not (paused game) 
                       then 
-                        updatePlayerInGame seconds game -- TODO: call updates here
+                        updatePlayerRocketsInGame seconds . 
+                        updatePlayerInGame seconds $ 
+                        game
                       else 
                         game
 
@@ -139,12 +174,14 @@ handleKeys :: Event -> GameState -> GameState
 handleKeys (EventKey (Char 'p') Down _ _) game =
   game { paused = not (paused game) }
 
+-- Ignore 'p' keypress release
 handleKeys (EventKey (Char 'p') Up _ _) game = game
 
-  
+-- Remember all keys being pressed
 handleKeys (EventKey key Down _ _) game =
   game { keysPressed = insert key (keysPressed game) }
   
+-- Forget all keys not pressed anymore
 handleKeys (EventKey key Up _ _) game =
   game { keysPressed = delete key (keysPressed game) }
   
