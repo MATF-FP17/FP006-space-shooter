@@ -5,9 +5,9 @@
 name:           SpaceShooter
 version:        0.1.0.0
 synopsis:       Space Shooter game in Haskell using Gloss
-description:    Please see the README on Github at <https://github.com/githubuser/test#readme>
-homepage:       https://github.com/githubuser/SpaceShooter#readme
-bug-reports:    https://github.com/githubuser/SpaceShooter/issues
+description:    Please see the README on Github at <https://github.com/MATF-FP17/FP006-space-shooter#readme>
+homepage:       https://github.com/MATF-FP17/FP006-space-shooter#readme
+bug-reports:    https://github.com/MATF-FP17/FP006-space-shooter/issues
 author:         Aleksandra Kovacevic, Mirko Brkusanin
 maintainer:     example@example.com
 copyright:      2017 Author name here
@@ -22,7 +22,7 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/githubuser/SpaceShooter
+  location: https://github.com/MATF-FP17/FP006-space-shooter
 
 library
   hs-source-dirs:
