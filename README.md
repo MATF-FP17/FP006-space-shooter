@@ -1,2 +1,3 @@
-# FP006-space-shooter
-Space Shooter
+# SpaceShooter
+
+Space Shooter game in Haskell using Gloss
