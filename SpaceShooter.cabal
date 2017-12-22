@@ -32,7 +32,10 @@ library
     , gloss
     , containers
   exposed-modules:
+      Constants
       Game
+      Player
+      Projectile
   default-language: Haskell2010
 
 executable SpaceShooter
