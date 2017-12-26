@@ -3,13 +3,16 @@ module Player
   , drawSpaceShip
   , updatePlayer
   , getPlayerPosition
+  , debugPlayerPosition
+  , debugPlayerSpeed
   ) where
 
 import Constants
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
-import Data.Set
+import Data.Set hiding (show)
 import Data.Function
+import Numeric
 
 (/.) = (/) `on` fromIntegral -- divides two Integrals as Floats
 
@@ -18,6 +21,19 @@ data PlayerState = Player
   { pPosition :: (Float, Float) -- player coordinates
   , pSpeed :: Float             -- player movement speed
   } deriving Show               -- TODO: debug output
+  
+debugPlayerPosition :: PlayerState -> String
+debugPlayerPosition player = 
+  "position (" ++ 
+    (showFFloat (Just 2) px "") ++ 
+      "," ++ 
+        (showFFloat (Just 2) py "") ++ 
+          ")"
+  where 
+    (px,py) = pPosition player
+
+debugPlayerSpeed :: PlayerState -> String
+debugPlayerSpeed player = "speed: " ++ show (pSpeed player)
 
 -- | Produces a Picture of a Player
 drawSpaceShip :: PlayerState -> Picture
@@ -38,7 +54,7 @@ updatePlayer keysPressed seconds player =
   player { pPosition = (nx', ny') }
     where
       (nx, ny) = pPosition player
-      w = wallBoundWidth / 2 + shipSizeWh
+      w = wallBoundWidth + shipSizeWh
       
       nx' :: Float
       nx' = 

@@ -6,15 +6,14 @@ import Constants
 import Player
 import Projectile
 import Graphics.Gloss
---import Graphics.Gloss.Data.ViewPort
 import Graphics.Gloss.Interface.Pure.Game
-import Data.Set
+import Data.Set hiding (map, show)
 import Data.Function
 
 (/.) = (/) `on` fromIntegral -- divides two Integrals as Floats
 
 window :: Display
-window = InWindow "SpaceShooter" (width, height) (offset, offset)
+window = InWindow "SpaceShooter" (width + iWidth, height) (offset, offset)
 
 background :: Color
 background = black
@@ -45,12 +44,73 @@ initialState = Game
   , paused = False
   }
 
+-- DRAW FUNCTIONS --
+  
+drawInfo :: Picture
+drawInfo = 
+  Scale textScale textScale $
+    color red $
+      pictures
+      [ rowOrder 1 $ Text "Hello"
+      , rowOrder 2 $ Text "and"
+      , rowOrder 3 $ Text "welcome"
+      ]
+  where
+    rowOrder :: Float -> Picture -> Picture
+    rowOrder number = translate 0 ((-textHeight) * number)
+
+drawControlsInfo :: Picture
+drawControlsInfo = 
+  Scale controlsTextScale controlsTextScale $ 
+    color green $ 
+      pictures 
+      [ rowROrder 3 $ Text "CONTROLS"
+      , rowROrder 2 $ Text "Move: WASD or Arrow Keys" 
+      , rowROrder 1 $ Text "Shoot: Space"
+      , rowROrder 0 $ Text "Pause: P"
+      ]
+  where
+    rowROrder :: Float -> Picture -> Picture
+    rowROrder number = translate 0 (textHeight * number)
+
+drawDebugInfo :: GameState -> Picture
+drawDebugInfo game = 
+  Scale debugTextScale debugTextScale $ 
+    color red $ 
+      pictures 
+      [ rowROrder 5 $ Text "DEBUG INFO"
+      , rowROrder 4 $ Text $ "No. of player's projectiles: " ++ 
+          show (length (playerProjectiles game))
+      , rowROrder 3 $ Text "Player:"
+      , rowROrder 2 $ Text $ debugPlayerPosition (player game) 
+      , rowROrder 1 $ Text $ debugPlayerSpeed (player game)
+      ]
+  where
+    rowROrder :: Float -> Picture -> Picture
+    rowROrder number = translate 0 (textHeight * number)
+    
+drawPauseScreen :: Picture
+drawPauseScreen =
+  Scale 0.5 0.5 $
+    translate (-250) 0 $
+      color yellow $
+        Text "PAUSED"
+  
 -- | Convert a game state into a picture.
 render :: GameState  -- ^ The game state to render.
        -> Picture    -- ^ A picture of this game state.
 render game =
-  pictures [walls,projectiles,spaceship]
+  pictures 
+  [ translate (iWidth /. 2) 0 $ pictures [walls,projectiles,spaceship] -- all game objects
+  , translateToInfoSideBar (height /. 2 ) $ drawInfo
+  , translateToInfoSideBar 0 $ drawControlsInfo
+  , translateToInfoSideBar (-height /. 2 ) $ drawDebugInfo game
+  , if (paused game) then translate (iWidth /. 2) 0 $ drawPauseScreen else Blank
+  ]
   where
+    translateToInfoSideBar :: Float -> Picture -> Picture
+    translateToInfoSideBar h = translate ((-width /. 2) + (-iWidth /. 2)) h
+  
     -- player's spaceship
     spaceship :: Picture
     spaceship = drawSpaceShip (player game)
@@ -63,11 +123,12 @@ render game =
           rectangleSolid wallBoundWidth (fromIntegral height)
 
     wallColor = greyN 0.5
-    walls = pictures [wall (width /. 2), wall ( (-width) /. 2)]
+    walls = pictures [wall ((width /. 2) - (wallBoundWidth / 2)), 
+                      wall (( (-width) /. 2) + (wallBoundWidth / 2))]
 
     -- Player projectiles
     projectiles :: Picture
-    projectiles = pictures $ Prelude.map drawProjectile (playerProjectiles game) 
+    projectiles = pictures $ map drawProjectile (playerProjectiles game) 
 
     
 
@@ -82,7 +143,7 @@ updatePlayerInGame seconds game =
 updatePlayerProjectilesInGame :: Float -> GameState -> GameState
 updatePlayerProjectilesInGame seconds game = 
   game { playerProjectiles = 
-           Prelude.map (updateProjectile seconds) (playerProjectiles game) }
+           map (updateProjectile seconds) (playerProjectiles game) }
 
 -- | Player fired a projectile
 projectileFiredByPlayer :: GameState -> GameState

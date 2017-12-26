@@ -10,7 +10,7 @@ module Projectile
 import Constants
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
-import Data.Set
+import Data.Set hiding (filter)
 import Data.Function
 
 (/.) = (/) `on` fromIntegral -- divides two Integrals as Floats
@@ -62,4 +62,4 @@ projectileInBounds projectile =
     xLimit = width /. 2
 
 deleteOutOfBoundsProjectiles :: [Projectile] -> [Projectile]
-deleteOutOfBoundsProjectiles projectiles = Prelude.filter projectileInBounds projectiles
+deleteOutOfBoundsProjectiles projectiles = filter projectileInBounds projectiles
