@@ -34,7 +34,7 @@ data GameState = Game
 -- | The starting state for the game.
 initialState :: GameState
 initialState = Game
-  { player = Player (0,(-150)) 50
+  { player = Player (0,(-150)) 50 0
   -- enemies = []
   -- obstacle = []
   , playerProjectiles = []
@@ -78,12 +78,13 @@ drawDebugInfo game =
   Scale debugTextScale debugTextScale $ 
     color red $ 
       pictures 
-      [ rowROrder 5 $ Text "DEBUG INFO"
-      , rowROrder 4 $ Text $ "No. of player's projectiles: " ++ 
+      [ rowROrder 6 $ Text "DEBUG INFO"
+      , rowROrder 5 $ Text $ "No. of player's projectiles: " ++ 
           show (length (playerProjectiles game))
-      , rowROrder 3 $ Text "Player:"
-      , rowROrder 2 $ Text $ debugPlayerPosition (player game) 
-      , rowROrder 1 $ Text $ debugPlayerSpeed (player game)
+      , rowROrder 4 $ Text "Player:"
+      , rowROrder 3 $ Text $ debugPlayerPosition (player game) 
+      , rowROrder 2 $ Text $ debugPlayerSpeed (player game)
+      , rowROrder 1 $ Text $ debugPlayerReloadTime (player game)
       ]
   where
     rowROrder :: Float -> Picture -> Picture
@@ -101,7 +102,7 @@ render :: GameState  -- ^ The game state to render.
        -> Picture    -- ^ A picture of this game state.
 render game =
   pictures 
-  [ translate (iWidth /. 2) 0 $ pictures [walls,projectiles,spaceship] -- all game objects
+  [ translate (iWidth /. 2) 0 $ pictures [walls,projectiles,spaceship,reloadBar] -- all game objects
   , translateToInfoSideBar (height /. 2 ) $ drawInfo
   , translateToInfoSideBar 0 $ drawControlsInfo
   , translateToInfoSideBar (-height /. 2 ) $ drawDebugInfo game
@@ -114,6 +115,9 @@ render game =
     -- player's spaceship
     spaceship :: Picture
     spaceship = drawSpaceShip (player game)
+    
+    reloadBar :: Picture
+    reloadBar = drawReloadBar (player game)
 
     --  The bottom and top walls.
     wall :: Float -> Picture
@@ -130,7 +134,7 @@ render game =
     projectiles :: Picture
     projectiles = pictures $ map drawProjectile (playerProjectiles game) 
 
-    
+
 
 -- UPDATE FUNCTIONS -- TODO: Combine all into one update function
     
@@ -148,11 +152,13 @@ updatePlayerProjectilesInGame seconds game =
 -- | Player fired a projectile
 projectileFiredByPlayer :: GameState -> GameState
 projectileFiredByPlayer game = 
-  if ( member (SpecialKey KeySpace) (keysPressed game) )
-  then
+  if (  (member (SpecialKey KeySpace) (keysPressed game)) -- is the key for firing a projectile being held
+     && (canFireProjectile (player game))  -- has the player reloaded a projectile
+     )
+  then -- fire
     game { playerProjectiles = 
-             addProjectile (px,py') (0,100) (playerProjectiles game) -- FIX: Remove constants for speed from here
-         , keysPressed = delete (SpecialKey KeySpace) (keysPressed game) 
+             addProjectile (px,py') (0,100) (playerProjectiles game) -- FIX: Remove constants for speed from here}
+         , player = reload (player game) -- reload after firing  
          }
   else
     game
@@ -165,6 +171,7 @@ deleteProjectilesFormGame :: GameState -> GameState
 deleteProjectilesFormGame game =
   game { playerProjectiles = 
            deleteOutOfBoundsProjectiles (playerProjectiles game) }
+
 
 -- | Update the game
 update :: Float -> GameState -> GameState 

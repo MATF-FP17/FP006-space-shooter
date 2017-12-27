@@ -16,11 +16,12 @@ debugTextScale = 0.1
 textHeight = 125
 
 -- | Game objects constants
-wallBoundWidth, shipSizeWh, shipSizeHt, shipSizeHb :: Float
-wallBoundWidth = 10  -- width of surrounding walls
-shipSizeWh = 15      -- half of spaceship's width
-shipSizeHt = 25      -- spaceship's length of front end
-shipSizeHb = 15      -- spaceship's length of back end
+wallBoundWidth, shipSizeWh, shipSizeHt, shipSizeHb, playerReloadTime :: Float
+wallBoundWidth = 10     -- width of surrounding walls
+shipSizeWh = 15         -- half of spaceship's width
+shipSizeHt = 25         -- spaceship's length of front end
+shipSizeHb = 15         -- spaceship's length of back end
+playerReloadTime = 0.5  -- minimal time between fired projectile 
 
 -- | Number of frames to show per second.
 fps :: Int
