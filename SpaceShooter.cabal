@@ -30,12 +30,15 @@ library
   build-depends:
       base >= 4.7 && < 5
     , gloss
+    , gloss-game
     , containers
+    , random
   exposed-modules:
       Constants
       Game
       Player
       Projectile
+      Asteroid
   default-language: Haskell2010
 
 executable SpaceShooter
@@ -46,8 +49,10 @@ executable SpaceShooter
   build-depends:
       base >= 4.7 && < 5
     , gloss
+    , gloss-game
     , containers
     , SpaceShooter
+    , random
   default-language: Haskell2010
 
 test-suite SpaceShooter-test
@@ -61,4 +66,5 @@ test-suite SpaceShooter-test
     , gloss
     , containers
     , SpaceShooter
+    , random
   default-language: Haskell2010

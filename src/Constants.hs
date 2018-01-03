@@ -26,3 +26,11 @@ playerReloadTime = 0.5  -- minimal time between fired projectile
 -- | Number of frames to show per second.
 fps :: Int
 fps = 60
+
+-- | Asteroids
+lowestAsteroidSpeed, highestAsteroidSpeed :: Float
+lowestAsteroidSpeed = -40.0
+highestAsteroidSpeed = 40.0
+-- | Images of objects.
+imageOfAsteroid :: String
+imageOfAsteroid = "C:/Users/Kolibri/FP/FP006-space-shooter/images/asteroid_day_favicon.png"

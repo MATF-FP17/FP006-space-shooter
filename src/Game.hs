@@ -4,11 +4,13 @@ module Game
 
 import Constants
 import Player
+import Asteroid
 import Projectile
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
 import Data.Set hiding (map, show)
 import Data.Function
+import System.Random
 
 (/.) = (/) `on` fromIntegral -- divides two Integrals as Floats
 
@@ -22,13 +24,14 @@ background = black
 data GameState = Game
   { player :: PlayerState             -- state of the player
   -- enemies :: [Enemy]               -- list of enemies
-  -- obstcales :: [Obstacle]          -- list of obstcales
+  ,obstaclesAsteroids :: [Asteroid]          -- list of obstcales
   , playerProjectiles :: [Projectile] -- list of projectile fired
   -- enemyProjectiles :: [Projectile] -- list of projectile fired
   -- ....
   -- timeFromLastAddedEnemy :: Float 
   , keysPressed :: Set Key            -- keeps track of all keys currently held down
   , paused :: Bool                    -- shows if the game is currently paused
+  , generator :: StdGen              --seed for random numbers
   } deriving Show                     -- TODO: debug output
 
 -- | The starting state for the game.
@@ -37,11 +40,13 @@ initialState = Game
   { player = Player (0,(-150)) 50 0
   -- enemies = []
   -- obstacle = []
+  , obstaclesAsteroids = []
   , playerProjectiles = []
   -- enemiesProjectiles = []
   -- timeFromLastAddedEnemy = 0
   , keysPressed = empty
   , paused = False
+  ,generator = mkStdGen(23456)
   }
 
 -- DRAW FUNCTIONS --
@@ -106,6 +111,7 @@ render game =
   , translateToInfoSideBar (height /. 2 ) $ drawInfo
   , translateToInfoSideBar 0 $ drawControlsInfo
   , translateToInfoSideBar (-height /. 2 ) $ drawDebugInfo game
+  , asteroids
   , if (paused game) then translate (iWidth /. 2) 0 $ drawPauseScreen else Blank
   ]
   where
@@ -129,11 +135,14 @@ render game =
     wallColor = greyN 0.5
     walls = pictures [wall ((width /. 2) - (wallBoundWidth / 2)), 
                       wall (( (-width) /. 2) + (wallBoundWidth / 2))]
-
+    
     -- Player projectiles
     projectiles :: Picture
     projectiles = pictures $ map drawProjectile (playerProjectiles game) 
-
+    
+    -- Asteroids
+    asteroids :: Picture
+    asteroids = pictures $ map drawAsteroid (obstaclesAsteroids game)
 
 
 -- UPDATE FUNCTIONS -- TODO: Combine all into one update function
@@ -148,6 +157,28 @@ updatePlayerProjectilesInGame :: Float -> GameState -> GameState
 updatePlayerProjectilesInGame seconds game = 
   game { playerProjectiles = 
            map (updateProjectile seconds) (playerProjectiles game) }
+ 
+ 
+-- | Update asteroids
+updateAsteroidsInGame :: Float -> GameState -> GameState
+updateAsteroidsInGame seconds game = 
+        game { obstaclesAsteroids = Prelude.map (updateAsteroid seconds) (obstaclesAsteroids game) }
+
+-- | Add asteroids to the game
+addAsteroidsToGame :: Float -> GameState -> GameState
+addAsteroidsToGame seconds game =
+    game { obstaclesAsteroids = newObstaclesAsteroids, generator = gen''''' }
+    where
+    oldObstaclesAsteroids = obstaclesAsteroids game
+    gen = generator game
+    (x', gen') = randomR ((-width /.2 ) + wallBoundWidth + iWidth /. 2, (width /. 2) - wallBoundWidth + iWidth /. 2) gen :: (Float, StdGen) 
+    y'= (height /. 2) - 2.0;
+    (step,gen'') = randomR (1,120) gen' ::(Int, StdGen)
+    (speedX, gen''') = randomR (lowestAsteroidSpeed, highestAsteroidSpeed) gen'' ::(Float, StdGen)
+    (speedY, gen'''') = randomR (lowestAsteroidSpeed,highestAsteroidSpeed) gen''' ::(Float, StdGen)
+    (deg, gen''''') = randomR (15,30) gen''' ::(Float, StdGen)
+    newObstaclesAsteroids = if (step>118) then (Asteroid (x',y') 32.0 32.0 (speedX,(speedY)) deg imageOfAsteroid) : oldObstaclesAsteroids
+                                              else oldObstaclesAsteroids
 
 -- | Player fired a projectile
 projectileFiredByPlayer :: GameState -> GameState
@@ -172,6 +203,12 @@ deleteProjectilesFormGame game =
   game { playerProjectiles = 
            deleteOutOfBoundsProjectiles (playerProjectiles game) }
 
+-- -- | Deletes all out of bounds asteroids from game
+deleteAsteroidsFromGame :: GameState -> GameState
+deleteAsteroidsFromGame game =
+    game { obstaclesAsteroids = 
+         deleteOutOfBoundsAsteroids (obstaclesAsteroids game) }
+
 
 -- | Update the game
 update :: Float -> GameState -> GameState 
@@ -180,6 +217,9 @@ update seconds game = if not (paused game)
                         projectileFiredByPlayer .
                         updatePlayerProjectilesInGame seconds . 
                         deleteProjectilesFormGame .
+                        updateAsteroidsInGame seconds .
+                        addAsteroidsToGame seconds .
+                        deleteAsteroidsFromGame .
                         updatePlayerInGame seconds $ 
                         game
                       else 
