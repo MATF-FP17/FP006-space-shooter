@@ -174,8 +174,8 @@ addAsteroidsToGame seconds game =
     (x', gen') = randomR ((-width /.2 ) + wallBoundWidth + iWidth /. 2, (width /. 2) - wallBoundWidth + iWidth /. 2) gen :: (Float, StdGen) 
     y'= (height /. 2) - 2.0;
     (step,gen'') = randomR (1,120) gen' ::(Int, StdGen)
-    (speedX, gen''') = randomR (lowestAsteroidSpeed, highestAsteroidSpeed) gen'' ::(Float, StdGen)
-    (speedY, gen'''') = randomR (lowestAsteroidSpeed,highestAsteroidSpeed) gen''' ::(Float, StdGen)
+    (speedX, gen''') = randomR (lowestAsteroidSpeedX, highestAsteroidSpeedX) gen'' ::(Float, StdGen)
+    (speedY, gen'''') = randomR (lowestAsteroidSpeedY,highestAsteroidSpeedY) gen''' ::(Float, StdGen)
     (deg, gen''''') = randomR (15,30) gen''' ::(Float, StdGen)
     newObstaclesAsteroids = if (step>118) then (Asteroid (x',y') 32.0 32.0 (speedX,(speedY)) deg imageOfAsteroid) : oldObstaclesAsteroids
                                               else oldObstaclesAsteroids

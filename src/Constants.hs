@@ -28,9 +28,11 @@ fps :: Int
 fps = 60
 
 -- | Asteroids
-lowestAsteroidSpeed, highestAsteroidSpeed :: Float
-lowestAsteroidSpeed = -40.0
-highestAsteroidSpeed = 40.0
+lowestAsteroidSpeedX, highestAsteroidSpeedX, lowestAsteroidSpeedY, highestAsteroidSpeedY :: Float
+lowestAsteroidSpeedX = -40.0
+highestAsteroidSpeedX = 40.0
+lowestAsteroidSpeedY = -40.0
+highestAsteroidSpeedY = -10.0
 -- | Images of objects.
 imageOfAsteroid :: String
 imageOfAsteroid = "C:/Users/Kolibri/FP/FP006-space-shooter/images/asteroid_day_favicon.png"
