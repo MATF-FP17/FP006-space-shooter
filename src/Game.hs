@@ -107,11 +107,10 @@ render :: GameState  -- ^ The game state to render.
        -> Picture    -- ^ A picture of this game state.
 render game =
   pictures 
-  [ translate (iWidth /. 2) 0 $ pictures [walls,projectiles,spaceship,reloadBar] -- all game objects
+  [ translate (iWidth /. 2) 0 $ pictures [walls,projectiles,spaceship,reloadBar, asteroids] -- all game objects
   , translateToInfoSideBar (height /. 2 ) $ drawInfo
   , translateToInfoSideBar 0 $ drawControlsInfo
   , translateToInfoSideBar (-height /. 2 ) $ drawDebugInfo game
-  , asteroids
   , if (paused game) then translate (iWidth /. 2) 0 $ drawPauseScreen else Blank
   ]
   where
@@ -171,13 +170,13 @@ addAsteroidsToGame seconds game =
     where
     oldObstaclesAsteroids = obstaclesAsteroids game
     gen = generator game
-    (x', gen') = randomR ((-width /.2 ) + wallBoundWidth + iWidth /. 2, (width /. 2) - wallBoundWidth + iWidth /. 2) gen :: (Float, StdGen) 
+    (x', gen') = randomR ((-width /.2 ) + wallBoundWidth + 32.0, (width /. 2) - wallBoundWidth - 32.0) gen :: (Float, StdGen) 
     y'= (height /. 2) - 2.0;
-    (step,gen'') = randomR (1,120) gen' ::(Int, StdGen)
+    (step,gen'') = randomR (1,600) gen' ::(Int, StdGen)
     (speedX, gen''') = randomR (lowestAsteroidSpeedX, highestAsteroidSpeedX) gen'' ::(Float, StdGen)
     (speedY, gen'''') = randomR (lowestAsteroidSpeedY,highestAsteroidSpeedY) gen''' ::(Float, StdGen)
     (deg, gen''''') = randomR (15,30) gen''' ::(Float, StdGen)
-    newObstaclesAsteroids = if (step>118) then (Asteroid (x',y') 32.0 32.0 (speedX,(speedY)) deg imageOfAsteroid) : oldObstaclesAsteroids
+    newObstaclesAsteroids = if (step>598) then (Asteroid (x',y') 32.0 32.0 (speedX,(speedY)) deg imageOfAsteroid) : oldObstaclesAsteroids
                                               else oldObstaclesAsteroids
 
 -- | Player fired a projectile

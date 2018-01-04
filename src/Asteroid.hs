@@ -42,11 +42,13 @@ drawAsteroid asteroid =
 -- | Update Asteroid
 updateAsteroid :: Float -> Asteroid -> Asteroid
 updateAsteroid seconds asteroid =
-  asteroid { aPosition = (nx', ny'), aDegree=nd }
+  asteroid { aPosition = (nx', ny'), aSpeed = (sx' , sy), aDegree=nd }
     where
       (nx,ny) = aPosition asteroid
       (sx,sy) = aSpeed asteroid
-      nx' = nx + seconds * sx
+      awidth = aWidth asteroid
+      sx' = if (((nx + awidth / 2)> width /. 2 - wallBoundWidth) || ((nx - awidth / 2)< (-width /.2 ) + wallBoundWidth )) then (-sx) else sx 
+      nx' = nx + seconds * sx'
       ny' = ny + seconds * sy
       nd= (aDegree asteroid) + 1
   
@@ -69,8 +71,8 @@ asteroidInBounds asteroid =
   where
     (rx,ry) = aPosition asteroid
     yLimit = height /. 2
-    xLimitLeft =(-(width /. 2)) +  iWidth /. 2
-    xLimitRight =(width /. 2) + iWidth /. 2
+    xLimitLeft =(-width /.2 ) - wallBoundWidth 
+    xLimitRight =width /. 2 + wallBoundWidth
 
 deleteOutOfBoundsAsteroids :: [Asteroid] -> [Asteroid]
 deleteOutOfBoundsAsteroids asteroids = Prelude.filter asteroidInBounds asteroids
