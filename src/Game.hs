@@ -163,6 +163,45 @@ updateAsteroidsInGame :: Float -> GameState -> GameState
 updateAsteroidsInGame seconds game = 
         game { obstaclesAsteroids = Prelude.map (updateAsteroid seconds) (obstaclesAsteroids game) }
 
+-- | Collision between asteroids and projectiles
+handleProjectilesAsteroidsCollision :: Float -> GameState -> GameState
+handleProjectilesAsteroidsCollision seconds game =
+        game { obstaclesAsteroids = Prelude.map (\x-> snd x) remaindAsteroids
+             , playerProjectiles = Prelude.map (\x-> snd x) remaindProjectiles}
+        where
+        asteroids = zip [1..] $ obstaclesAsteroids game
+        projectiles =zip [1..] $ playerProjectiles game 
+        asteroidProjectilesList = [(a,p) | a <- asteroids, p <- projectiles]
+        asteroidProjectilesListFiltered = Prelude.filter (\x -> checkForAsteoridProjectileCollision  (snd ( fst x)) (snd ( snd x))) asteroidProjectilesList
+        asteroidIndicesForRemove = returnAsteroidIndices asteroidProjectilesList asteroidProjectilesListFiltered
+        projectileIndicesForRemove = returnProjectileIndices asteroidProjectilesList asteroidProjectilesListFiltered
+        remaindAsteroids = Prelude.filter (\x->  (elem (fst x) asteroidIndicesForRemove) == False) asteroids
+        remaindProjectiles = Prelude.filter (\x-> (elem (fst x) projectileIndicesForRemove) == False) projectiles
+ 
+ 
+
+checkForAsteoridProjectileCollision :: Asteroid -> Projectile -> Bool
+checkForAsteoridProjectileCollision asteroid projectile = centerDistance > radiusSum
+        where
+        (ax, ay) = aPosition asteroid
+        aw = aWidth asteroid / 2 --asteroid radius
+        (px, py) = rPosition projectile
+        pw = 4 --projectile radius
+        centerDistance = (ax-px)^2 + (ay-py)^2
+        radiusSum = (aw + pw)^2
+        
+returnAsteroidIndices :: [((Int , Asteroid),(Int, Projectile))] -> [((Int , Asteroid),(Int, Projectile))]->[Int]
+returnAsteroidIndices  unfilteredList filteredList = asteroidIndices
+        where 
+        asteroidsForRemoving = Prelude.filter (\x-> (elem x filteredList) == False) unfilteredList
+        asteroidIndices = Prelude.foldl (\acc x -> (fst ( fst x)) : acc) [] asteroidsForRemoving
+
+returnProjectileIndices :: [((Int , Asteroid),(Int, Projectile))] -> [((Int , Asteroid),(Int, Projectile))]->[Int]
+returnProjectileIndices  unfilteredList filteredList = projectileIndices
+        where 
+        projectilesForRemoving = Prelude.filter (\x-> (elem x filteredList) == False) unfilteredList
+        projectileIndices = Prelude.foldl (\acc x -> (fst (snd x)) : acc) [] projectilesForRemoving
+
 -- | Add asteroids to the game
 addAsteroidsToGame :: Float -> GameState -> GameState
 addAsteroidsToGame seconds game =
@@ -219,6 +258,7 @@ update seconds game = if not (paused game)
                         updateAsteroidsInGame seconds .
                         addAsteroidsToGame seconds .
                         deleteAsteroidsFromGame .
+                        handleProjectilesAsteroidsCollision seconds .
                         updatePlayerInGame seconds $ 
                         game
                       else 

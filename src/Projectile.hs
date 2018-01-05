@@ -5,6 +5,7 @@ module Projectile
   , addProjectile
   , projectileInBounds
   , deleteOutOfBoundsProjectiles
+  , rPosition
   ) where
 
 import Constants
@@ -19,7 +20,7 @@ import Data.Function
 data Projectile = Projectile
   { rPosition :: (Float, Float) -- projectile coordinates
   , rSpeed :: (Float, Float)    -- speed vector
-  } deriving Show               -- TODO: debug output
+  } deriving (Show,Eq)               -- TODO: debug output
 
 -- | Produces a Picture of a given Projectile
 drawProjectile :: Projectile -> Picture

@@ -5,6 +5,8 @@ module Asteroid
   , addAsteroid
   , asteroidInBounds
   , deleteOutOfBoundsAsteroids
+  , aPosition
+  , aWidth
   ) where
   
 import Constants
@@ -23,7 +25,7 @@ data Asteroid = Asteroid
      , aSpeed :: (Float, Float)     -- asteroid speed
      , aDegree :: Float             -- rotation degree
      , aPath   :: FilePath            -- image path that presents asteroid
-     } deriving Show                
+     } deriving (Show,Eq)                
  
  -- | Produces a Picture of a given Asteroid
 drawAsteroid :: Asteroid -> Picture
