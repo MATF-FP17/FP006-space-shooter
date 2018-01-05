@@ -37,7 +37,7 @@ data GameState = Game
 -- | The starting state for the game.
 initialState :: GameState
 initialState = Game
-  { player = Player (0,(-150)) 50 0
+  { player = Player (0,(-150)) 100 0
   -- enemies = []
   -- obstacle = []
   , obstaclesAsteroids = []
@@ -176,7 +176,7 @@ addAsteroidsToGame seconds game =
     (speedX, gen''') = randomR (lowestAsteroidSpeedX, highestAsteroidSpeedX) gen'' ::(Float, StdGen)
     (speedY, gen'''') = randomR (lowestAsteroidSpeedY,highestAsteroidSpeedY) gen''' ::(Float, StdGen)
     (deg, gen''''') = randomR (15,30) gen''' ::(Float, StdGen)
-    newObstaclesAsteroids = if (step>598) then (Asteroid (x',y') 32.0 32.0 (speedX,(speedY)) deg imageOfAsteroid) : oldObstaclesAsteroids
+    newObstaclesAsteroids = if (step>598) then (Asteroid (x',y') 32.0 (speedX,speedY) deg imageOfAsteroid) : oldObstaclesAsteroids
                                               else oldObstaclesAsteroids
 
 -- | Player fired a projectile

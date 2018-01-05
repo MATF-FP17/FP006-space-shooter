@@ -19,7 +19,6 @@ import Data.Function
 -- | Data describing all properties of a asteroid
 data Asteroid = Asteroid 
      { aPosition :: (Float, Float)  -- asteroid coordinates
-     , aHeight :: Float             -- asteroid height =32
      , aWidth :: Float              -- asteroid width =32
      , aSpeed :: (Float, Float)     -- asteroid speed
      , aDegree :: Float             -- rotation degree
@@ -35,8 +34,6 @@ drawAsteroid asteroid =
      where
        (rx,ry) = aPosition asteroid
        deg = aDegree asteroid
-       h = aHeight asteroid
-       w = aWidth asteroid
        path = aPath asteroid
   
 -- | Update Asteroid
@@ -53,8 +50,8 @@ updateAsteroid seconds asteroid =
       nd= (aDegree asteroid) + 1
   
 -- | Adds new asteroid 
-addAsteroid :: (Float,Float) ->  Float-> Float -> (Float,Float) -> Float -> FilePath ->[Asteroid] -> [Asteroid]
-addAsteroid (px,py) h w (sx,sy) deg path asteroids = (Asteroid (px,py) h w (sx,sy) deg path) : asteroids
+addAsteroid :: (Float,Float) ->  Float -> (Float,Float) -> Float -> FilePath ->[Asteroid] -> [Asteroid]
+addAsteroid (px,py) w (sx,sy) deg path asteroids = (Asteroid (px,py) w (sx,sy) deg path) : asteroids
 
 -- | Checks if a asteroid has exited the screen
 asteroidInBounds :: Asteroid -> Bool
