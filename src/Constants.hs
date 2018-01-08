@@ -35,4 +35,4 @@ lowestAsteroidSpeedY = -40.0
 highestAsteroidSpeedY = -10.0
 -- | Images of objects.
 imageOfAsteroid :: String
-imageOfAsteroid = "C:/Users/Kolibri/FP/FP006-space-shooter/images/asteroid_day_favicon.png"
+imageOfAsteroid = "images/asteroid_day_favicon.png"

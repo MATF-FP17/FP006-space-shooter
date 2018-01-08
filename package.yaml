@@ -22,7 +22,9 @@ description:         Please see the README on Github at <https://github.com/MATF
 dependencies:
 - base >= 4.7 && < 5
 - gloss
+- gloss-game
 - containers
+- random
 
 library:
   source-dirs: src
