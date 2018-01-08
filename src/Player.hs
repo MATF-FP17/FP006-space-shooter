@@ -62,12 +62,8 @@ drawReloadBar player =
   translate px py $
     translate 0 (-shipSizeHb - 7) $
       pictures 
-      [
-      color (greyN 0.5) $
-        rectangleSolid (shipSizeWh*2) (barHeight)
-      ,
-      color red $
-        rectangleSolid (((shipSizeWh*2)-1)*percentage) (barHeight-2)
+      [ color (greyN 0.5) $ rectangleSolid (shipSizeWh*2) (barHeight)
+      , color red $ rectangleSolid (((shipSizeWh*2)-1)*percentage) (barHeight-2)
       ]
   where
     (px,py) = pPosition player

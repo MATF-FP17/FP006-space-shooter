@@ -1,6 +1,7 @@
 module Asteroid
   ( Asteroid (Asteroid)
   , drawAsteroid
+  , makeAsteroidPicture
   , updateAsteroid
   , addAsteroid
   , asteroidInBounds
@@ -24,7 +25,8 @@ data Asteroid = Asteroid
      , aWidth :: Float              -- asteroid width =32
      , aSpeed :: (Float, Float)     -- asteroid speed
      , aDegree :: Float             -- rotation degree
-     , aPath   :: FilePath            -- image path that presents asteroid
+     --, aPath   :: FilePath          -- image path that presents asteroid
+     , aPicture :: Picture          -- picture object of the asteroid
      } deriving (Show,Eq)                
  
  -- | Produces a Picture of a given Asteroid
@@ -32,11 +34,15 @@ drawAsteroid :: Asteroid -> Picture
 drawAsteroid asteroid =
    translate rx ry $
    Rotate deg $
-   png path
+  --png path
+   aPicture asteroid
      where
        (rx,ry) = aPosition asteroid
        deg = aDegree asteroid
-       path = aPath asteroid
+       --path = aPath asteroid
+       
+makeAsteroidPicture :: FilePath -> Picture
+makeAsteroidPicture path = png path
   
 -- | Update Asteroid
 updateAsteroid :: Float -> Asteroid -> Asteroid
@@ -53,7 +59,7 @@ updateAsteroid seconds asteroid =
   
 -- | Adds new asteroid 
 addAsteroid :: (Float,Float) ->  Float -> (Float,Float) -> Float -> FilePath ->[Asteroid] -> [Asteroid]
-addAsteroid (px,py) w (sx,sy) deg path asteroids = (Asteroid (px,py) w (sx,sy) deg path) : asteroids
+addAsteroid (px,py) w (sx,sy) deg path asteroids = (Asteroid (px,py) w (sx,sy) deg (makeAsteroidPicture path)) : asteroids
 
 -- | Checks if a asteroid has exited the screen
 asteroidInBounds :: Asteroid -> Bool

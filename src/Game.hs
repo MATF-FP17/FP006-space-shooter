@@ -24,14 +24,14 @@ background = black
 data GameState = Game
   { player :: PlayerState             -- state of the player
   -- enemies :: [Enemy]               -- list of enemies
-  ,obstaclesAsteroids :: [Asteroid]          -- list of obstcales
+  , obstaclesAsteroids :: [Asteroid]  -- list of obstcales
   , playerProjectiles :: [Projectile] -- list of projectile fired
   -- enemyProjectiles :: [Projectile] -- list of projectile fired
   -- ....
   -- timeFromLastAddedEnemy :: Float 
   , keysPressed :: Set Key            -- keeps track of all keys currently held down
   , paused :: Bool                    -- shows if the game is currently paused
-  , generator :: StdGen              --seed for random numbers
+  , generator :: StdGen               -- seed for random numbers
   } deriving Show                     -- TODO: debug output
 
 -- | The starting state for the game.
@@ -83,7 +83,9 @@ drawDebugInfo game =
   Scale debugTextScale debugTextScale $ 
     color red $ 
       pictures 
-      [ rowROrder 6 $ Text "DEBUG INFO"
+      [ rowROrder 7 $ Text "DEBUG INFO"
+      , rowROrder 6 $ Text $ "No. of asteroids: " ++ 
+          show (length (obstaclesAsteroids game))
       , rowROrder 5 $ Text $ "No. of player's projectiles: " ++ 
           show (length (playerProjectiles game))
       , rowROrder 4 $ Text "Player:"
@@ -215,7 +217,7 @@ addAsteroidsToGame seconds game =
     (speedX, gen''') = randomR (lowestAsteroidSpeedX, highestAsteroidSpeedX) gen'' ::(Float, StdGen)
     (speedY, gen'''') = randomR (lowestAsteroidSpeedY,highestAsteroidSpeedY) gen''' ::(Float, StdGen)
     (deg, gen''''') = randomR (15,30) gen''' ::(Float, StdGen)
-    newObstaclesAsteroids = if (step>598) then (Asteroid (x',y') 32.0 (speedX,speedY) deg imageOfAsteroid) : oldObstaclesAsteroids
+    newObstaclesAsteroids = if (step>598) then (Asteroid (x',y') 32.0 (speedX,speedY) deg (makeAsteroidPicture imageOfAsteroid)) : oldObstaclesAsteroids
                                               else oldObstaclesAsteroids
 
 -- | Player fired a projectile
