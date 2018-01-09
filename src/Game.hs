@@ -37,7 +37,7 @@ data GameState = Game
 -- | The starting state for the game.
 initialState :: GameState
 initialState = Game
-  { player = Player (0,(-150)) 100 0
+  { player = Player (0,(-150)) 100 0 loadPlayerSprites noMovement
   -- enemies = []
   -- obstacle = []
   , obstaclesAsteroids = []
@@ -84,6 +84,9 @@ drawDebugInfo game =
     color red $ 
       pictures 
       [ rowROrder 7 $ Text "DEBUG INFO"
+      --, rowROrder 7 $ Text $ "Sprites: " ++ 
+      --    debugPlayerSpriteState (player game) ++ " " ++ 
+      --    debugPlayerSpriteChangeTime (player game) 
       , rowROrder 6 $ Text $ "No. of asteroids: " ++ 
           show (length (obstaclesAsteroids game))
       , rowROrder 5 $ Text $ "No. of player's projectiles: " ++ 
@@ -228,7 +231,7 @@ projectileFiredByPlayer game =
      )
   then -- fire
     game { playerProjectiles = 
-             addProjectile (px,py') (0,100) (playerProjectiles game) -- FIX: Remove constants for speed from here}
+             addProjectile (px,py') (0,projectileSpeed) (playerProjectiles game)
          , player = reload (player game) -- reload after firing  
          }
   else
