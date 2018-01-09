@@ -20,30 +20,54 @@ import Data.Function
 data Projectile = Projectile
   { rPosition :: (Float, Float) -- projectile coordinates
   , rSpeed :: (Float, Float)    -- speed vector
-  } deriving (Show,Eq)               -- TODO: debug output
+  , rSprites :: [Picture]       -- all projectile sprites
+  , rSpriteState :: Int         -- index of last drawn sprite
+  , rSpriteChangeTime :: Float  -- time left until sprite change
+  } deriving (Show,Eq)          -- TODO: debug output
 
 -- | Produces a Picture of a given Projectile
 drawProjectile :: Projectile -> Picture
 drawProjectile projectile =
   translate rx ry $
-    color yellow $
-      circle 4
+    (rSprites projectile)!!(rSpriteState projectile)
+    --color yellow $
+      --circle 4
     where
       (rx,ry) = rPosition projectile
 
 -- | Update a projectile
 updateProjectile :: Float -> Projectile -> Projectile
 updateProjectile seconds projectile =
-  projectile { rPosition = (nx', ny') }
+  projectile { rPosition = (nx', ny')
+             , rSpriteState = nSS'
+             , rSpriteChangeTime = nSCT'
+             }
     where
       (nx,ny) = rPosition projectile
       (sx,sy) = rSpeed projectile
       nx' = nx + seconds * sx
       ny' = ny + seconds * sy
 
+      nSS' :: Int
+      nSS' =
+        if ((rSpriteChangeTime projectile) <= 0)
+        then
+          ((rSpriteState projectile) + 1) `mod` projectileSpriteNumber
+        else
+          rSpriteState projectile
+
+      nSCT' :: Float
+      nSCT' = 
+        if ((rSpriteChangeTime projectile) <= 0)
+        then
+          (rSpriteChangeTime projectile) + projectileSpriteChangeInterval - seconds
+        else
+          (rSpriteChangeTime projectile) - seconds
+
+
 -- | Adds new projectile when fired
-addProjectile :: (Float,Float) -> (Float,Float) -> [Projectile] -> [Projectile]
-addProjectile (px,py) (sx,sy) projectiles = (Projectile (px,py) (sx,sy)) : projectiles
+addProjectile :: (Float,Float) -> (Float,Float) -> [Picture] -> [Projectile] -> [Projectile]
+addProjectile (px,py) (sx,sy) sprites projectiles = (Projectile (px,py) (sx,sy)) sprites 0 0.1 : projectiles
 
 -- | Checks if a Projectile has exited the screen
 projectileInBounds :: Projectile -> Bool

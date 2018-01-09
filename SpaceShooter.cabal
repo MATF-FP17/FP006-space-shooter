@@ -39,6 +39,7 @@ library
       Game
       Player
       Projectile
+      SpriteCache
   default-language: Haskell2010
 
 executable SpaceShooter

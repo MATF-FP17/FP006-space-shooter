@@ -3,6 +3,7 @@ module Game
   ) where
 
 import Constants
+import SpriteCache
 import Player
 import Asteroid
 import Projectile
@@ -32,6 +33,7 @@ data GameState = Game
   , keysPressed :: Set Key            -- keeps track of all keys currently held down
   , paused :: Bool                    -- shows if the game is currently paused
   , generator :: StdGen               -- seed for random numbers
+  , sprites :: SpriteCache            -- cache with all game spirtes
   } deriving Show                     -- TODO: debug output
 
 -- | The starting state for the game.
@@ -46,7 +48,8 @@ initialState = Game
   -- timeFromLastAddedEnemy = 0
   , keysPressed = empty
   , paused = False
-  ,generator = mkStdGen(23456)
+  , generator = mkStdGen(23456)
+  , sprites = loadAllSprites
   }
 
 -- DRAW FUNCTIONS --
@@ -231,7 +234,7 @@ projectileFiredByPlayer game =
      )
   then -- fire
     game { playerProjectiles = 
-             addProjectile (px,py') (0,projectileSpeed) (playerProjectiles game)
+             addProjectile (px,py') (0,projectileSpeed) (sProjectileSprites (sprites game)) (playerProjectiles game)
          , player = reload (player game) -- reload after firing  
          }
   else

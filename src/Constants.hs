@@ -55,7 +55,35 @@ imageShipWidth = 39
 --spaceshipSpriteNumber :: Int
 --spaceshipSpriteNumber = 2
 
+
+imageProjectileA1, imageProjectileA2, imageProjectileA3, imageProjectileA4 :: String 
+imageProjectileA5, imageProjectileA6, imageProjectileA7, imageProjectileA8 :: String
+imageProjectileB1, imageProjectileB2, imageProjectileB3, imageProjectileB4 :: String
+imageProjectileB5, imageProjectileB6, imageProjectileB7, imageProjectileB8 :: String
+imageProjectileA1 = "images/projectile_A1.png" 
+imageProjectileA2 = "images/projectile_A2.png" 
+imageProjectileA3 = "images/projectile_A3.png" 
+imageProjectileA4 = "images/projectile_A4.png" 
+imageProjectileA5 = "images/projectile_A5.png" 
+imageProjectileA6 = "images/projectile_A6.png" 
+imageProjectileA7 = "images/projectile_A7.png" 
+imageProjectileA8 = "images/projectile_A8.png" 
+imageProjectileB1 = "images/projectile_B1.png" 
+imageProjectileB2 = "images/projectile_B2.png" 
+imageProjectileB3 = "images/projectile_B3.png" 
+imageProjectileB4 = "images/projectile_B4.png" 
+imageProjectileB5 = "images/projectile_B5.png" 
+imageProjectileB6 = "images/projectile_B6.png" 
+imageProjectileB7 = "images/projectile_B7.png" 
+imageProjectileB8 = "images/projectile_B8.png" 
+imageProjectileSize :: Int
+imageProjectileSize = 13
+projectileSpriteNumber :: Int
+projectileSpriteNumber = 8
+
 -- | Animation
 --spaceshipSpriteChangeInterval :: Float
 --spaceshipSpriteChangeInterval = 0.200 -- time interval between sprites
+projectileSpriteChangeInterval :: Float
+projectileSpriteChangeInterval = 0.1 -- time interval between sprites
 
