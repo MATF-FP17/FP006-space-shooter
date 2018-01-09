@@ -13,6 +13,7 @@ import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
 import Data.Set hiding (filter)
 import Data.Function
+import SpriteAnimation
 
 (/.) = (/) `on` fromIntegral -- divides two Integrals as Floats
 
@@ -20,16 +21,21 @@ import Data.Function
 data Projectile = Projectile
   { rPosition :: (Float, Float) -- projectile coordinates
   , rSpeed :: (Float, Float)    -- speed vector
-  , rSprites :: [Picture]       -- all projectile sprites
-  , rSpriteState :: Int         -- index of last drawn sprite
-  , rSpriteChangeTime :: Float  -- time left until sprite change
-  } deriving (Show,Eq)          -- TODO: debug output
-
+  , rAnimation :: SpriteAnimation 
+  } deriving (Show)           -- TODO: debug output
+  
+-- | Equality only checks if the coordinates (rPosition) is the same
+instance Eq Projectile where
+  (Projectile p1 _ _ ) == (Projectile p2 _ _ ) = ( p1==p2 ) 
+  (Projectile p1 _ _ ) /= (Projectile p2 _ _ ) = ( p1/=p2 )
+ 
+ 
 -- | Produces a Picture of a given Projectile
 drawProjectile :: Projectile -> Picture
 drawProjectile projectile =
   translate rx ry $
-    (rSprites projectile)!!(rSpriteState projectile)
+    drawAnimation (rAnimation projectile)
+    --(rSprites projectile)!!(rSpriteState projectile)
     --color yellow $
       --circle 4
     where
@@ -39,8 +45,7 @@ drawProjectile projectile =
 updateProjectile :: Float -> Projectile -> Projectile
 updateProjectile seconds projectile =
   projectile { rPosition = (nx', ny')
-             , rSpriteState = nSS'
-             , rSpriteChangeTime = nSCT'
+             , rAnimation = updateAnimation seconds (rAnimation projectile)
              }
     where
       (nx,ny) = rPosition projectile
@@ -48,26 +53,9 @@ updateProjectile seconds projectile =
       nx' = nx + seconds * sx
       ny' = ny + seconds * sy
 
-      nSS' :: Int
-      nSS' =
-        if ((rSpriteChangeTime projectile) <= 0)
-        then
-          ((rSpriteState projectile) + 1) `mod` projectileSpriteNumber
-        else
-          rSpriteState projectile
-
-      nSCT' :: Float
-      nSCT' = 
-        if ((rSpriteChangeTime projectile) <= 0)
-        then
-          (rSpriteChangeTime projectile) + projectileSpriteChangeInterval - seconds
-        else
-          (rSpriteChangeTime projectile) - seconds
-
-
 -- | Adds new projectile when fired
-addProjectile :: (Float,Float) -> (Float,Float) -> [Picture] -> [Projectile] -> [Projectile]
-addProjectile (px,py) (sx,sy) sprites projectiles = (Projectile (px,py) (sx,sy)) sprites 0 0.1 : projectiles
+addProjectile :: (Float,Float) -> (Float,Float) -> SpriteAnimation -> [Projectile] -> [Projectile]
+addProjectile (px,py) (sx,sy) animation projectiles = (Projectile (px,py) (sx,sy) animation) : projectiles
 
 -- | Checks if a Projectile has exited the screen
 projectileInBounds :: Projectile -> Bool

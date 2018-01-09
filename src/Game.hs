@@ -7,6 +7,7 @@ import SpriteCache
 import Player
 import Asteroid
 import Projectile
+import SpriteAnimation
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
 import Data.Set hiding (map, show)
@@ -234,7 +235,7 @@ projectileFiredByPlayer game =
      )
   then -- fire
     game { playerProjectiles = 
-             addProjectile (px,py') (0,projectileSpeed) (sProjectileSprites (sprites game)) (playerProjectiles game)
+             addProjectile (px,py') (0,projectileSpeed) (makeRepeatingAnimation projectileSpriteChangeInterval (sProjectileSprites (sprites game))) (playerProjectiles game)
          , player = reload (player game) -- reload after firing  
          }
   else

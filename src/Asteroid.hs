@@ -27,7 +27,12 @@ data Asteroid = Asteroid
      , aDegree :: Float             -- rotation degree
      --, aPath   :: FilePath          -- image path that presents asteroid
      , aPicture :: Picture          -- picture object of the asteroid
-     } deriving (Show,Eq)                
+     } deriving (Show)           
+
+-- | Equality only checks coordinates, speed and rotation degree
+instance Eq Asteroid where
+  (Asteroid a1p _ a1s a1d _) == (Asteroid a2p _ a2s a2d _) = (a1p==a2p && a1s==a2s && a1d==a2d )
+  (Asteroid a1p _ a1s a1d _) /= (Asteroid a2p _ a2s a2d _) = (a1p/=a2p || a1s/=a2s || a1d/=a2d )
  
  -- | Produces a Picture of a given Asteroid
 drawAsteroid :: Asteroid -> Picture
