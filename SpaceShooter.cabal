@@ -39,6 +39,7 @@ library
       Game
       Player
       Projectile
+      SpriteAnimation
       SpriteCache
   default-language: Haskell2010
 
