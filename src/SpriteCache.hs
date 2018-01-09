@@ -1,7 +1,9 @@
 module SpriteCache
   ( SpriteCache (SpriteCache)
   , loadAllSprites
+  , loadSpaceshipSprites
   , sProjectileSprites
+  , sSpaceshipSprites
   ) where
 
 import Constants
@@ -14,10 +16,11 @@ import Graphics.Gloss.Game
 
 data SpriteCache = SpriteCache
   { sProjectileSprites :: [Picture]
+  , sSpaceshipSprites :: [Picture]
   } deriving (Show)
   
 loadAllSprites :: SpriteCache
-loadAllSprites = SpriteCache loadProjectileSpirtes
+loadAllSprites = SpriteCache loadProjectileSpirtes loadSpaceshipSprites 
   
 loadProjectileSpirtes :: [Picture]
 loadProjectileSpirtes = 
@@ -38,4 +41,18 @@ loadProjectileSpirtes =
   , png imageProjectileB7
   , png imageProjectileB8
   ]
+  
+loadSpaceshipSprites :: [Picture]
+loadSpaceshipSprites =
+  [ png imageShipN0
+  , png imageShipN1
+  , png imageShipN2
+  , png imageShipL0
+  , png imageShipL1
+  , png imageShipL2
+  , png imageShipR0
+  , png imageShipR1
+  , png imageShipR2
+  ]
+  
   

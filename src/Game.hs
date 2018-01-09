@@ -40,7 +40,7 @@ data GameState = Game
 -- | The starting state for the game.
 initialState :: GameState
 initialState = Game
-  { player = Player (0,(-150)) 100 0 loadPlayerSprites noMovement
+  { player = Player (0,(-150)) 100 0 loadSpaceshipSprites noMovement
   -- enemies = []
   -- obstacle = []
   , obstaclesAsteroids = []
@@ -241,7 +241,7 @@ projectileFiredByPlayer game =
   else
     game
   where 
-    (px,py) = getPlayerPosition (player game)
+    (px,py) = pPosition (player game)
     py' = py + shipSizeHt
 
 -- | Deletes all out of bounds projectiles from game

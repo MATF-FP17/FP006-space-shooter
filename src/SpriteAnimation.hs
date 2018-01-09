@@ -67,17 +67,20 @@ drawAnimation (SpriteAnimation Single [] _ _) = Blank
 drawAnimation (SpriteAnimation Single sprites _ _) = head sprites
 drawAnimation (SpriteAnimation (Repeating state _) sprites _ _) = sprites!!state
   
+-- | Make a Repeating Animation with given sprite change interval and list of sprites
 makeRepeatingAnimation :: Float -> [Picture] -> SpriteAnimation
 makeRepeatingAnimation interval sprites = SpriteAnimation (Repeating 0 (length sprites)) sprites interval interval
 
+-- | Make a Single Animation with given sprite change interval and list of sprites
 makeSingleAnimation :: Float -> [Picture] -> SpriteAnimation
 makeSingleAnimation interval sprites = SpriteAnimation Single sprites interval interval
 
+-- | Make a Blank Animation that only produces a Blank Picture (testing only) --TODO: remove if obsolete
 blankAnimation :: SpriteAnimation
 blankAnimation = SpriteAnimation Single [] 0 0
 
 {-
---Different implementation
+--Different implementation -- TODO: Check if better
 
 data SpriteAnimation = 
   RepeatingAnimation

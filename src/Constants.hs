@@ -52,10 +52,6 @@ imageShipR2 = "images/ship_right_0.png"
 imageShipHeight, imageShipWidth :: Int
 imageShipHeight = 43
 imageShipWidth = 39
---spaceshipSpriteNumber :: Int
---spaceshipSpriteNumber = 2
-
-
 imageProjectileA1, imageProjectileA2, imageProjectileA3, imageProjectileA4 :: String 
 imageProjectileA5, imageProjectileA6, imageProjectileA7, imageProjectileA8 :: String
 imageProjectileB1, imageProjectileB2, imageProjectileB3, imageProjectileB4 :: String

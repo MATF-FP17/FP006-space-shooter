@@ -84,5 +84,6 @@ asteroidInBounds asteroid =
     xLimitLeft =(-width /.2 ) - wallBoundWidth 
     xLimitRight =width /. 2 + wallBoundWidth
 
+-- | Removes all asteroids that have exited the screen
 deleteOutOfBoundsAsteroids :: [Asteroid] -> [Asteroid]
 deleteOutOfBoundsAsteroids asteroids = Prelude.filter asteroidInBounds asteroids

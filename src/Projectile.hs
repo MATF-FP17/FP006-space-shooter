@@ -74,5 +74,6 @@ projectileInBounds projectile =
     yLimit = height /. 2
     xLimit = width /. 2
 
+-- | Removes all projectiles that have exited the screen
 deleteOutOfBoundsProjectiles :: [Projectile] -> [Projectile]
 deleteOutOfBoundsProjectiles projectiles = filter projectileInBounds projectiles

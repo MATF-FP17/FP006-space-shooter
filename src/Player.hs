@@ -1,18 +1,15 @@
 module Player
   ( PlayerState (Player) 
-  , loadPlayerSprites
   , drawSpaceShip
   , drawReloadBar
   , updatePlayer
-  , getPlayerPosition
+  , pPosition
   , canFireProjectile
   , reload
   , noMovement
   , debugPlayerPosition
   , debugPlayerSpeed
   , debugPlayerReloadTime
-  --, debugPlayerSpriteState
-  --, debugPlayerSpriteChangeTime
   ) where
 
 import Constants
@@ -62,8 +59,6 @@ data PlayerState = Player
   , pSpeed :: Float             -- player movement speed
   , pInReload :: Float          -- time left until a projectile can be fired again
   , pSprites :: [Picture]       -- all sprites of player's spaceship
-  --, pSpriteState :: Int         -- index of last drawn sprite
-  --, pSpriteChangeTime :: Float  -- time left until sprite change
   , pMovement :: Movement       -- direction of last movement
   } deriving Show               -- TODO: debug output
   
@@ -84,30 +79,6 @@ debugPlayerReloadTime :: PlayerState -> String
 debugPlayerReloadTime player = 
   "reload time: " ++
     (showFFloat (Just 4) (pInReload player) "") 
-  
-{-  
-debugPlayerSpriteState :: PlayerState -> String
-debugPlayerSpriteState player =  "state " ++ show (pSpriteState player)
-
-debugPlayerSpriteChangeTime :: PlayerState -> String
-debugPlayerSpriteChangeTime player =  
-  "change " ++ 
-    (showFFloat (Just 2) (pSpriteChangeTime player) "" )
--}  
-  
--- | Load spaceship sprites
-loadPlayerSprites :: [Picture]
-loadPlayerSprites = 
-  [ png imageShipN0
-  , png imageShipN1
-  , png imageShipN2
-  , png imageShipL0
-  , png imageShipL1
-  , png imageShipL2
-  , png imageShipR0
-  , png imageShipR1
-  , png imageShipR2
-  ]
 
 -- | Produces a Picture of a Player
 drawSpaceShip :: PlayerState -> Picture
@@ -115,7 +86,6 @@ drawSpaceShip player =
   translate px py $
     Scale (w/wo) ((hb+ht+hbt)/ho) $ 
       (pSprites player)!!(3*hm+vm) -- picks a sprite based of 9 possible movement states
-        --polygon [(0,ht),(w,-hb),(0,0),(-w,-hb),(0,ht)]
   where
     (px,py) = pPosition player
     w = shipSizeWh * 2
@@ -127,6 +97,8 @@ drawSpaceShip player =
     hm = toNumberHorizontalMovement (mHorizontal (pMovement player))
     vm = toNumberVerticalMovement (mVertical (pMovement player))
     
+-- | Draws a reload bar below the player giving visual representation of how much
+-- time left there is until another projectile can be fired
 drawReloadBar :: PlayerState -> Picture
 drawReloadBar player = 
   translate px py $
@@ -140,10 +112,11 @@ drawReloadBar player =
     barHeight = 6
     percentage = (pInReload player) / (playerReloadTime)
 
-
+-- | Checks if the player is not reloading at the current time
 canFireProjectile :: PlayerState -> Bool
 canFireProjectile player = if (pInReload player <= 0) then True else False
   
+-- | Resets reload timer. Called after a projectile is fired
 reload :: PlayerState -> PlayerState
 reload player = player { pInReload = playerReloadTime }
 
@@ -151,7 +124,6 @@ reload player = player { pInReload = playerReloadTime }
 updatePlayer :: Set Key -> Float -> PlayerState -> PlayerState
 updatePlayer keysPressed seconds player =
   player { pPosition = (nx', ny'), pInReload = nReload,
-           -- pSpriteState = nSS', pSpriteChangeTime = nSCT', 
            pMovement = Movement nH' nV'
          }
     where
@@ -186,24 +158,6 @@ updatePlayer keysPressed seconds player =
       
       nReload :: Float
       nReload = max 0 ((pInReload player) - seconds)
-      
-      {-
-      nSS' :: Int
-      nSS' =
-        if ((pSpriteChangeTime player) <= 0)
-        then
-          ((pSpriteState player) + 1) `mod` spaceshipSpriteNumber
-        else
-          pSpriteState player
-          
-      nSCT' :: Float
-      nSCT' = 
-        if ((pSpriteChangeTime player) <= 0)
-        then
-          (pSpriteChangeTime player) + spaceshipSpriteChangeInterval - seconds
-        else
-          (pSpriteChangeTime player) - seconds
-      -}      
         
       nH' :: HorizontalMovement
       nH' = 
@@ -224,10 +178,6 @@ updatePlayer keysPressed seconds player =
           || (member (SpecialKey KeyDown) keysPressed)
         then DownV
         else NoV
-
--- | Returns player coordinates
-getPlayerPosition :: PlayerState -> (Float, Float)
-getPlayerPosition player = pPosition player
 
 -- | Initial state of data Movement
 noMovement :: Movement
