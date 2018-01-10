@@ -2,25 +2,27 @@ module SpriteCache
   ( SpriteCache (SpriteCache)
   , loadAllSprites
   , loadSpaceshipSprites
+  , loadSpriteFont
   , sProjectileSprites
   , sSpaceshipSprites
+  , sAsteroidSprite
+  , sSpriteFont
   ) where
 
 import Constants
-
+import Data.Map.Strict (Map, fromList)
 import Graphics.Gloss
 import Graphics.Gloss.Game
---import Graphics.Gloss.Interface.Pure.Game
---import Data.Set hiding (map, show)
---import Data.Function
 
 data SpriteCache = SpriteCache
   { sProjectileSprites :: [Picture]
   , sSpaceshipSprites :: [Picture]
+  , sAsteroidSprite :: Picture
+  , sSpriteFont :: Map Char Picture  
   } deriving (Show)
   
 loadAllSprites :: SpriteCache
-loadAllSprites = SpriteCache loadProjectileSpirtes loadSpaceshipSprites 
+loadAllSprites = SpriteCache loadProjectileSpirtes loadSpaceshipSprites loadAsteroidSprite loadSpriteFont
   
 loadProjectileSpirtes :: [Picture]
 loadProjectileSpirtes = 
@@ -54,5 +56,62 @@ loadSpaceshipSprites =
   , png imageShipR1
   , png imageShipR2
   ]
+  
+loadAsteroidSprite :: Picture
+loadAsteroidSprite = png imageOfAsteroid
+  
+loadSpriteFont :: Map Char Picture  
+loadSpriteFont = fromList loadSpriteFont'
+  
+loadSpriteFont' :: [(Char,Picture)]
+loadSpriteFont' =
+  [ ('0', png imageSpriteFont0)
+  , ('1', png imageSpriteFont1)
+  , ('2', png imageSpriteFont2)
+  , ('3', png imageSpriteFont3)
+  , ('4', png imageSpriteFont4)
+  , ('5', png imageSpriteFont5)
+  , ('6', png imageSpriteFont6)
+  , ('7', png imageSpriteFont7)
+  , ('8', png imageSpriteFont8)
+  , ('9', png imageSpriteFont9)
+  , ('A', png imageSpriteFontA)
+  , ('B', png imageSpriteFontB)
+  , ('C', png imageSpriteFontC)
+  , ('D', png imageSpriteFontD)
+  , ('E', png imageSpriteFontE)
+  , ('F', png imageSpriteFontF)
+  , ('G', png imageSpriteFontG)
+  , ('H', png imageSpriteFontH)
+  , ('I', png imageSpriteFontI)
+  , ('J', png imageSpriteFontJ)
+  , ('K', png imageSpriteFontK)
+  , ('L', png imageSpriteFontL)
+  , ('M', png imageSpriteFontM)
+  , ('N', png imageSpriteFontN)
+  , ('O', png imageSpriteFontO)
+  , ('P', png imageSpriteFontP)
+  , ('Q', png imageSpriteFontQ)
+  , ('R', png imageSpriteFontR)
+  , ('S', png imageSpriteFontS)
+  , ('T', png imageSpriteFontT)
+  , ('U', png imageSpriteFontU)
+  , ('V', png imageSpriteFontV)
+  , ('W', png imageSpriteFontW)
+  , ('X', png imageSpriteFontX)
+  , ('Y', png imageSpriteFontY)
+  , ('Z', png imageSpriteFontZ)
+  , (',', png imageSpriteFontComma)
+  , ('.', png imageSpriteFontDot)
+  , (';', png imageSpriteFontDotComma)
+  , (':', png imageSpriteFontDoubleDot)
+  , ('=', png imageSpriteFontEqual)
+  , ('!', png imageSpriteFontExclamation)
+  , ('-', png imageSpriteFontMinus)
+  , ('+', png imageSpriteFontPlus)
+  , ('?', png imageSpriteFontQuestion)
+  , (' ', png imageSpriteFontSpace)
+  ]
+
   
   

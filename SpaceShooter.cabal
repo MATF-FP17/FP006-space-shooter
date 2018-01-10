@@ -41,6 +41,7 @@ library
       Projectile
       SpriteAnimation
       SpriteCache
+      SpriteText
   default-language: Haskell2010
 
 executable SpaceShooter

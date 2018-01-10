@@ -102,7 +102,7 @@ drawSpaceShip player =
 drawReloadBar :: PlayerState -> Picture
 drawReloadBar player = 
   translate px py $
-    translate 0 (-shipSizeHb - shipSizeHbTail - 6) $
+    translate 0 (-shipSizeHb - shipSizeHbTail - barDistance) $
       pictures 
       [ color (greyN 0.5) $ rectangleSolid (shipSizeWh*2) (barHeight)
       , color red $ rectangleSolid (((shipSizeWh*2)-1)*percentage) (barHeight-2)
@@ -110,6 +110,7 @@ drawReloadBar player =
   where
     (px,py) = pPosition player
     barHeight = 6
+    barDistance = 6
     percentage = (pInReload player) / (playerReloadTime)
 
 -- | Checks if the player is not reloading at the current time
