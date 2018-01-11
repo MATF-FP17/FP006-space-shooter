@@ -41,12 +41,10 @@ data GameState = Game
   } 
   | WelcomeScreen
   { keysPressed :: Set Key 
-  , paused :: Bool 
   , sprites :: SpriteCache
   } 
   | GameOver
   { keysPressed :: Set Key
-  , paused :: Bool 
   , sprites :: SpriteCache
   , score :: Int
   }
@@ -56,7 +54,6 @@ data GameState = Game
 initialState :: GameState
 initialState = WelcomeScreen
   { keysPressed = empty
-  , paused = False
   , sprites = loadAllSprites
   }
 
@@ -82,7 +79,7 @@ drawWelcomeScreen :: Map Char Picture -> Picture
 drawWelcomeScreen spriteFont =
   pictures
   [ Scale 2 2 $ rowOrder (-2) $ centerText "SPACE SHOOTER" spriteFont
-  , rowOrder 2 $ centerText "Press P to start" spriteFont
+  , rowOrder 2 $ centerText "Press any key to start" spriteFont
   ]
   where
     rowOrder :: Float -> Picture -> Picture
@@ -163,9 +160,9 @@ drawPauseScreen spriteFont =
 -- | Convert a game state into a picture.
 render :: GameState  -- ^ The game state to render.
        -> Picture    -- ^ A picture of this game state.
-render game@(WelcomeScreen _ _ sprites) = 
+render game@(WelcomeScreen _ sprites) = 
   pictures [drawWelcomeScreen (sSpriteFont sprites)]
-render game@(GameOver _ _ sprites score) =
+render game@(GameOver _ sprites score) =
   pictures [drawGameOverScreen (sSpriteFont sprites) score]
 render game =
   pictures 
@@ -345,24 +342,46 @@ deleteProjectilesFormGame game =
   game { playerProjectiles = 
            deleteOutOfBoundsProjectiles (playerProjectiles game) }
 
--- -- | Deletes all out of bounds asteroids from game
+-- | Deletes all out of bounds asteroids from game
 deleteAsteroidsFromGame :: GameState -> GameState
 deleteAsteroidsFromGame game =
     game { obstaclesAsteroids = 
          deleteOutOfBoundsAsteroids (obstaclesAsteroids game) }
 
+-- | Handle user input on WelcomeScreen
+updateWelcomeScreen :: GameState -> GameState
+updateWelcomeScreen game@(WelcomeScreen keysPressed loadedSprites) =
+  if null keysPressed -- on any key pressed start the game
+  then game 
+  else initialLoadedGameState loadedSprites
 
+-- | Handle user input on GameOver screen
+updateGameOverScreen :: GameState -> GameState
+updateGameOverScreen game@(GameOver keysPressed _ _) =
+  if (member (Char 'r') keysPressed)
+  then initialState 
+  else game
+  
+-- | Handle user input on Game screen
+handleInputGameScreen :: GameState -> GameState
+handleInputGameScreen game = 
+    if (member (Char 'p') (keysPressed game))
+    then game { paused = not (paused game) 
+              , keysPressed = delete (Char 'p') (keysPressed game) 
+              }
+    else if (member (Char 'r') (keysPressed game))
+    then initialState
+    else game
+         
 -- | Update the game
 update :: Float -> GameState -> GameState 
-update _ game@(WelcomeScreen _ _ loadedSprites) = 
-  if not (paused game)
-  then game
-  else initialLoadedGameState loadedSprites
-update _ game@(GameOver _ _ _ _) = game
+update _ game@(WelcomeScreen _ _) = updateWelcomeScreen game
+update _ game@(GameOver _ _ _) = updateGameOverScreen game
 update seconds game = if (pHealth (player game)) <= 0
                       then (GameOver (keysPressed game) False (sprites game) (pScore (player game)))
                       else if not (paused game) 
                       then 
+                        handleInputGameScreen . --must be last
                         projectileFiredByPlayer .
                         updatePlayerProjectilesInGame seconds . 
                         deleteProjectilesFormGame .
@@ -374,9 +393,7 @@ update seconds game = if (pHealth (player game)) <= 0
                         updatePlayerInGame seconds $ 
                         game
                       else 
-                        game
-
-
+                        handleInputGameScreen game
 
 
 -- INPUT FUNCTIONS --
@@ -384,25 +401,12 @@ update seconds game = if (pHealth (player game)) <= 0
 -- | Respond to key events.
 handleKeys :: Event -> GameState -> GameState
 
--- For an 'p' keypress, pause the game
-handleKeys (EventKey (Char 'p') Down _ _) game =
-  game { paused = not (paused game) }
-
--- Ignore 'p' keypress release
-handleKeys (EventKey (Char 'p') Up _ _) game = game
-
--- For an 'r' keypress, reset the game
-handleKeys (EventKey (Char 'r') Down _ _) game = initialState
-
--- Ignore 'r' keypress release
-handleKeys (EventKey (Char 'r') Up _ _) game = game
-
 -- For an 'k' keypress, kill the player (for testing)
-handleKeys (EventKey (Char 'k') Down _ _) game = 
-  game { player = damagePlayer 100 (player game) }
+--handleKeys (EventKey (Char 'k') Down _ _) game =  -- force kill (testing only)
+--  game { player = damagePlayer 100 (player game) }
 
 -- Ignore 'k' keypress release
-handleKeys (EventKey (Char 'k') Up _ _) game = game
+--handleKeys (EventKey (Char 'k') Up _ _) game = game
 
 -- Remember all keys being pressed
 handleKeys (EventKey key Down _ _) game =
