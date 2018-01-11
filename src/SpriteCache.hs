@@ -5,6 +5,7 @@ module SpriteCache
   , loadSpriteFont
   , sProjectileSprites
   , sSpaceshipSprites
+  , sEnemySprites
   , sAsteroidSprite
   , sSpriteFont
   ) where
@@ -17,12 +18,17 @@ import Graphics.Gloss.Game
 data SpriteCache = SpriteCache
   { sProjectileSprites :: [Picture]
   , sSpaceshipSprites :: [Picture]
+  , sEnemySprites :: [Picture]
   , sAsteroidSprite :: Picture
   , sSpriteFont :: Map Char Picture  
   } deriving (Show)
   
 loadAllSprites :: SpriteCache
-loadAllSprites = SpriteCache loadProjectileSpirtes loadSpaceshipSprites loadAsteroidSprite loadSpriteFont
+loadAllSprites = SpriteCache loadProjectileSpirtes 
+                             loadSpaceshipSprites 
+                             loadEnemySprites 
+                             loadAsteroidSprite 
+                             loadSpriteFont
   
 loadProjectileSpirtes :: [Picture]
 loadProjectileSpirtes = 
@@ -55,6 +61,13 @@ loadSpaceshipSprites =
   , png imageShipR0
   , png imageShipR1
   , png imageShipR2
+  ]
+  
+loadEnemySprites :: [Picture]
+loadEnemySprites =
+  [ png imageEnemyNormal
+  , png imageEnemyLeft 
+  , png imageEnemyRight
   ]
   
 loadAsteroidSprite :: Picture

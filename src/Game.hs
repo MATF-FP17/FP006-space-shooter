@@ -7,6 +7,7 @@ import SpriteCache
 import Player
 import Asteroid
 import Projectile
+import Enemy
 import SpriteAnimation
 import SpriteText
 import Graphics.Gloss
@@ -28,12 +29,12 @@ background = black
 -- | Data describing the state of the game. 
 data GameState = Game
   { player :: PlayerState             -- state of the player
-  -- enemies :: [Enemy]               -- list of enemies
+  , enemies :: [Enemy]                -- list of enemies
   , obstaclesAsteroids :: [Asteroid]  -- list of obstcales
   , playerProjectiles :: [Projectile] -- list of projectiles fired
   -- enemyProjectiles :: [Projectile] -- list of projectiles fired
   -- ....
-  -- timeFromLastAddedEnemy :: Float 
+  , timeToAddNewEnemy :: Float        -- time left until a new enemy should be added
   , keysPressed :: Set Key            -- keeps track of all keys currently held down
   , paused :: Bool                    -- shows if the game is currently paused
   , generator :: StdGen               -- seed for random numbers
@@ -48,7 +49,6 @@ data GameState = Game
   , sprites :: SpriteCache
   , score :: Int
   }
-  --deriving Show                     -- TODO: debug output
 
 -- | The starting state for the game.
 initialState :: GameState
@@ -60,13 +60,12 @@ initialState = WelcomeScreen
 -- | Transfering loaded sprites into GameState
 initialLoadedGameState :: SpriteCache -> GameState
 initialLoadedGameState loadedSprites = Game  
-   { player = Player (0,(-150)) 100 100 0 0 (sSpaceshipSprites loadedSprites) noMovement
-  -- enemies = []
-  -- obstacle = []
+  { player = Player (0,(-150)) 100 100 0 0 (sSpaceshipSprites loadedSprites) noMovement
+  , enemies = []
   , obstaclesAsteroids = []
   , playerProjectiles = []
   -- enemiesProjectiles = []
-  -- timeFromLastAddedEnemy = 0
+  , timeToAddNewEnemy = enemySpawnTime
   , keysPressed = empty
   , paused = False
   , generator = mkStdGen(23456)
@@ -166,7 +165,7 @@ render game@(GameOver _ sprites score) =
   pictures [drawGameOverScreen (sSpriteFont sprites) score]
 render game =
   pictures 
-  [ translate (iWidth /. 2) 0 $ pictures [walls,projectiles,spaceship,reloadBar, asteroids] -- all game objects
+  [ translate (iWidth /. 2) 0 $ pictures [walls,projectiles,spaceship,reloadBar,asteroids,allEnemies] -- all game objects
   , translateToInfoSideBar (height /. 2 ) $ drawInfo (sSpriteFont (sprites game)) (pHealth (player game)) (pScore (player game))
   , translateToInfoSideBar 0 $ drawControlsInfo (sSpriteFont (sprites game))
   , translateToInfoSideBar (-height /. 2 ) $ drawDebugInfo game
@@ -201,21 +200,29 @@ render game =
     -- Asteroids
     asteroids :: Picture
     asteroids = pictures $ map drawAsteroid (obstaclesAsteroids game)
+    
+    -- Enemies
+    allEnemies :: Picture
+    allEnemies = pictures $ map drawEnemy (enemies game)
 
 
 -- UPDATE FUNCTIONS -- TODO: Combine all into one update function
     
--- | Calls updatePlayer for GameState
+-- | Calls updatePlayer for Game
 updatePlayerInGame :: Float -> GameState -> GameState
 updatePlayerInGame seconds game =
   game { player = updatePlayer (keysPressed game) seconds (player game) }
 
--- | Update all projectiles fired by player for GameState
+-- | Update all projectiles fired by player for Game
 updatePlayerProjectilesInGame :: Float -> GameState -> GameState
 updatePlayerProjectilesInGame seconds game = 
   game { playerProjectiles = 
            map (updateProjectile seconds) (playerProjectiles game) }
  
+-- | Update all enemies in Game
+updateEnemiesInGame :: Float -> GameState -> GameState
+updateEnemiesInGame seconds game =
+  game { enemies = map (updateEnemy seconds) (enemies game) }
  
 -- | Update asteroids
 updateAsteroidsInGame :: Float -> GameState -> GameState
@@ -317,6 +324,26 @@ addAsteroidsToGame seconds game =
     newObstaclesAsteroids = if (step>598) 
                             then (Asteroid (x',y') 32.0 (speedX,speedY) deg (sAsteroidSprite (sprites game))) : oldObstaclesAsteroids
                             else oldObstaclesAsteroids
+  
+-- | Add enemies to the game                          
+addEnemiesToGame :: Float -> GameState -> GameState
+addEnemiesToGame seconds game =
+  if (timeToAddNewEnemy game) - seconds > 0
+  then game { timeToAddNewEnemy = (timeToAddNewEnemy game) - seconds }
+  else game { enemies = newEnemy : (enemies game)
+            , timeToAddNewEnemy = enemySpawnTime + (timeToAddNewEnemy game)
+            , generator = gen'}
+  where
+    --newEnemy = Enemy (0,150) (0,-50) 
+    gen = generator game
+    newEnemy = Enemy (ex,ey) (sx,sy) (sEnemySprites (sprites game))
+    enemyWidth = 20.0
+    (ex,gen') = randomR ((-width /.2 ) + wallBoundWidth + enemyWidth, (width /. 2) - wallBoundWidth - enemyWidth) gen :: (Float, StdGen)
+    ey = (height /. 2) - 1.0
+    --(sx,gen'') = randomR (0,0) gen' :: (Float, StdGen)
+    sx = 0
+    (sy,gen'') = randomR (-75,-25) gen' :: (Float, StdGen)
+    
 
 -- | Player fired a projectile
 projectileFiredByPlayer :: GameState -> GameState
@@ -346,7 +373,12 @@ deleteProjectilesFormGame game =
 deleteAsteroidsFromGame :: GameState -> GameState
 deleteAsteroidsFromGame game =
     game { obstaclesAsteroids = 
-         deleteOutOfBoundsAsteroids (obstaclesAsteroids game) }
+             deleteOutOfBoundsAsteroids (obstaclesAsteroids game) }
+         
+-- | Delete all out of bounds enemies from game
+deleteEnemiesFromGame :: GameState -> GameState
+deleteEnemiesFromGame game =
+  game { enemies = deleteOutOfBoundsEnemies (enemies game) }
 
 -- | Handle user input on WelcomeScreen
 updateWelcomeScreen :: GameState -> GameState
@@ -382,6 +414,7 @@ update seconds game = if (pHealth (player game)) <= 0
                       else if not (paused game) 
                       then 
                         handleInputGameScreen . --must be last
+                        addEnemiesToGame seconds .
                         projectileFiredByPlayer .
                         updatePlayerProjectilesInGame seconds . 
                         deleteProjectilesFormGame .
@@ -390,6 +423,8 @@ update seconds game = if (pHealth (player game)) <= 0
                         deleteAsteroidsFromGame .
                         handlePlayerAsteroidsCollision .
                         handleProjectilesAsteroidsCollision .
+                        deleteEnemiesFromGame .
+                        updateEnemiesInGame seconds .
                         updatePlayerInGame seconds $ 
                         game
                       else 

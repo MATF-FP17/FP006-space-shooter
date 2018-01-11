@@ -21,8 +21,8 @@ data Projectile = Projectile
   { rPosition :: (Float, Float) -- projectile coordinates
   , rSpeed :: (Float, Float)    -- speed vector
   , rAnimation :: SpriteAnimation 
-  } deriving (Show)           -- TODO: debug output
-  
+  } deriving (Show)
+
 -- | Equality only checks if the coordinates (rPosition) is the same
 instance Eq Projectile where
   (Projectile p1 _ _ ) == (Projectile p2 _ _ ) = ( p1==p2 ) 
@@ -58,16 +58,11 @@ addProjectile (px,py) (sx,sy) animation projectiles = (Projectile (px,py) (sx,sy
 
 -- | Checks if a Projectile has exited the screen
 projectileInBounds :: Projectile -> Bool
-projectileInBounds projectile =
-  if ( (ry > yLimit   ) || 
+projectileInBounds projectile = 
+  not ((ry > yLimit   ) || 
        (ry < (-yLimit)) ||
        (rx > xLimit   ) ||
-       (rx < (-xLimit))
-     )
-  then
-    False
-  else
-    True
+       (rx < (-xLimit)) )
   where
     (rx,ry) = rPosition projectile
     yLimit = height /. 2

@@ -24,6 +24,9 @@ shipSizeHb = 15         -- spaceship's length of back end
 shipSizeHbTail = 8      -- spaceship's back end ignored (for drawing fuel trail)
 playerReloadTime = 0.5  -- minimal time between fired projectile 
 projectileSpeed = 200   -- projectile default speed
+enemySizeH, enemySizeW :: Float
+enemySizeW = 40.0       -- enemy's width in game
+enemySizeH = 40.0       -- enemy's height in game
 
 -- | Number of frames to show per second.
 fps :: Int
@@ -36,11 +39,13 @@ highestAsteroidSpeedX = 40.0
 lowestAsteroidSpeedY = -40.0
 highestAsteroidSpeedY = -10.0
 
--- | Object interaction
+-- | Object interaction and Gameplay
 asteroidDamageToPlayer :: Int --percent of damage taken when colliding with asteroid
 asteroidDamageToPlayer = 20
 asteroidDestructionScore :: Int
 asteroidDestructionScore = 5
+enemySpawnTime :: Float 
+enemySpawnTime = 2
 
 -- | Images of objects.
 imageOfAsteroid :: String
@@ -82,6 +87,14 @@ imageProjectileSize :: Int
 imageProjectileSize = 13
 projectileSpriteNumber :: Int
 projectileSpriteNumber = 8
+
+imageEnemyNormal, imageEnemyLeft, imageEnemyRight :: String
+imageEnemyNormal = "images/enemyNormal.png"
+imageEnemyLeft = "images/enemyLeft.png"
+imageEnemyRight = "images/enemyRight.png"
+imageEnemyHeight, imageEnemyWidth :: Int
+imageEnemyHeight = 30
+imageEnemyWidth = 28
 
 -- | Animation
 --spaceshipSpriteChangeInterval :: Float

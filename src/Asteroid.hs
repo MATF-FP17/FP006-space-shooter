@@ -68,15 +68,10 @@ addAsteroid (px,py) w (sx,sy) deg path asteroids = (Asteroid (px,py) w (sx,sy) d
 -- | Checks if a asteroid has exited the screen
 asteroidInBounds :: Asteroid -> Bool
 asteroidInBounds asteroid =
-  if ( (ry > yLimit   ) || 
-       (ry < (-yLimit)) ||
-       (rx > xLimitRight) ||
-       (rx < xLimitLeft)
-     )
-  then
-    False
-  else
-    True
+  not ( (ry > yLimit) || 
+        (ry < (-yLimit)) ||
+        (rx > xLimitRight) ||
+        (rx < xLimitLeft) )
   where
     (rx,ry) = aPosition asteroid
     yLimit = height /. 2

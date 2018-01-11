@@ -36,6 +36,7 @@ library
   exposed-modules:
       Asteroid
       Constants
+      Enemy
       Game
       Player
       Projectile

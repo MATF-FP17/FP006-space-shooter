@@ -66,7 +66,7 @@ data PlayerState = Player
   , pInReload :: Float          -- time left until a projectile can be fired again
   , pSprites :: [Picture]       -- all sprites of player's spaceship
   , pMovement :: Movement       -- direction of last movement
-  } deriving Show               -- TODO: debug output
+  } deriving Show
   
 debugPlayerPosition :: PlayerState -> String
 debugPlayerPosition player = 
