@@ -378,7 +378,7 @@ update :: Float -> GameState -> GameState
 update _ game@(WelcomeScreen _ _) = updateWelcomeScreen game
 update _ game@(GameOver _ _ _) = updateGameOverScreen game
 update seconds game = if (pHealth (player game)) <= 0
-                      then (GameOver (keysPressed game) False (sprites game) (pScore (player game)))
+                      then (GameOver (keysPressed game) (sprites game) (pScore (player game)))
                       else if not (paused game) 
                       then 
                         handleInputGameScreen . --must be last
