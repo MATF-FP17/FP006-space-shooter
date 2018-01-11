@@ -5,7 +5,9 @@ module Player
   , updatePlayer
   , pPosition
   , pHealth
+  , pScore
   , damagePlayer
+  , addScoreToPlayer
   , canFireProjectile
   , reload
   , noMovement
@@ -60,6 +62,7 @@ data PlayerState = Player
   { pPosition :: (Float, Float) -- player coordinates
   , pSpeed :: Float             -- player movement speed
   , pHealth :: Int              -- player's health (spaceship's hull integrity)
+  , pScore :: Int               -- player's score
   , pInReload :: Float          -- time left until a projectile can be fired again
   , pSprites :: [Picture]       -- all sprites of player's spaceship
   , pMovement :: Movement       -- direction of last movement
@@ -185,6 +188,9 @@ updatePlayer keysPressed seconds player =
 
 damagePlayer :: Int -> PlayerState -> PlayerState
 damagePlayer damage player = player { pHealth = (pHealth player) - damage }
+
+addScoreToPlayer :: Int -> PlayerState -> PlayerState
+addScoreToPlayer score player = player { pScore = (pScore player) + score }
         
 -- | Initial state of data Movement
 noMovement :: Movement

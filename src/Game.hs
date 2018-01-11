@@ -48,6 +48,7 @@ data GameState = Game
   { keysPressed :: Set Key
   , paused :: Bool 
   , sprites :: SpriteCache
+  , score :: Int
   }
   --deriving Show                     -- TODO: debug output
 
@@ -62,7 +63,7 @@ initialState = WelcomeScreen
 -- | Transfering loaded sprites into GameState
 initialLoadedGameState :: SpriteCache -> GameState
 initialLoadedGameState loadedSprites = Game  
-   { player = Player (0,(-150)) 100 100 0 (sSpaceshipSprites loadedSprites) noMovement
+   { player = Player (0,(-150)) 100 100 0 0 (sSpaceshipSprites loadedSprites) noMovement
   -- enemies = []
   -- obstacle = []
   , obstaclesAsteroids = []
@@ -91,10 +92,11 @@ drawWelcomeScreen spriteFont =
     centerText :: [Char] -> Map Char Picture -> Picture
     centerText text font = center (length text) $ makeSpriteText text font
   
-drawGameOverScreen :: Map Char Picture -> Picture
-drawGameOverScreen spriteFont = 
+drawGameOverScreen :: Map Char Picture -> Int -> Picture
+drawGameOverScreen spriteFont score = 
   pictures
   [ Scale 2 2 $ rowOrder (-2) $ centerText "GAME OVER" spriteFont
+  , rowOrder 0 $ centerText ("Score: "++(show score)) spriteFont
   , rowOrder 2 $ centerText "Press R to restart" spriteFont
   ]
   where
@@ -105,11 +107,11 @@ drawGameOverScreen spriteFont =
     centerText :: [Char] -> Map Char Picture -> Picture
     centerText text font = center (length text) $ makeSpriteText text font 
 
-drawInfo :: Map Char Picture -> Int -> Picture
-drawInfo spriteFont health = 
+drawInfo :: Map Char Picture -> Int -> Int -> Picture
+drawInfo spriteFont health score = 
   pictures
   [ rowOrder 1 $ makeSpriteText ("Health:"++(show health)) spriteFont
-  , rowOrder 2 $ makeSpriteText "Score:" spriteFont
+  , rowOrder 2 $ makeSpriteText ("Score:"++(show score)) spriteFont
   --, rowOrder 3 $ makeSpriteText "" spriteFont
   ]
   where
@@ -163,12 +165,12 @@ render :: GameState  -- ^ The game state to render.
        -> Picture    -- ^ A picture of this game state.
 render game@(WelcomeScreen _ _ sprites) = 
   pictures [drawWelcomeScreen (sSpriteFont sprites)]
-render game@(GameOver _ _ sprites) =
-  pictures [drawGameOverScreen (sSpriteFont sprites)]
+render game@(GameOver _ _ sprites score) =
+  pictures [drawGameOverScreen (sSpriteFont sprites) score]
 render game =
   pictures 
   [ translate (iWidth /. 2) 0 $ pictures [walls,projectiles,spaceship,reloadBar, asteroids] -- all game objects
-  , translateToInfoSideBar (height /. 2 ) $ drawInfo (sSpriteFont (sprites game)) (pHealth (player game))
+  , translateToInfoSideBar (height /. 2 ) $ drawInfo (sSpriteFont (sprites game)) (pHealth (player game)) (pScore (player game))
   , translateToInfoSideBar 0 $ drawControlsInfo (sSpriteFont (sprites game))
   , translateToInfoSideBar (-height /. 2 ) $ drawDebugInfo game
   , if (paused game) then translate (iWidth /. 2) 0 $ drawPauseScreen (sSpriteFont (sprites game)) else Blank
@@ -227,7 +229,9 @@ updateAsteroidsInGame seconds game =
 handleProjectilesAsteroidsCollision :: GameState -> GameState
 handleProjectilesAsteroidsCollision game =
         game { obstaclesAsteroids = Prelude.map (\x-> snd x) remaindAsteroids
-             , playerProjectiles = Prelude.map (\x-> snd x) remaindProjectiles}
+             , playerProjectiles = Prelude.map (\x-> snd x) remaindProjectiles
+             , player = addScoreToPlayer score (player game)
+             }
         where
         asteroids = zip [1..] $ obstaclesAsteroids game
         projectiles =zip [1..] $ playerProjectiles game 
@@ -237,6 +241,7 @@ handleProjectilesAsteroidsCollision game =
         projectileIndicesForRemove = returnProjectileIndices asteroidProjectilesList asteroidProjectilesListFiltered
         remaindAsteroids = Prelude.filter (\x->  (elem (fst x) asteroidIndicesForRemove) == False) asteroids
         remaindProjectiles = Prelude.filter (\x-> (elem (fst x) projectileIndicesForRemove) == False) projectiles
+        score = length asteroidIndicesForRemove * asteroidDestructionScore
  
  
 
@@ -353,9 +358,9 @@ update _ game@(WelcomeScreen _ _ loadedSprites) =
   if not (paused game)
   then game
   else initialLoadedGameState loadedSprites
-update _ game@(GameOver _ _ _) = game
+update _ game@(GameOver _ _ _ _) = game
 update seconds game = if (pHealth (player game)) <= 0
-                      then (GameOver (keysPressed game) False (sprites game))
+                      then (GameOver (keysPressed game) False (sprites game) (pScore (player game)))
                       else if not (paused game) 
                       then 
                         projectileFiredByPlayer .
