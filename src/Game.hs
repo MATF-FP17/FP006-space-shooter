@@ -11,8 +11,9 @@ import SpriteAnimation
 import SpriteText
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
-import Data.Set hiding (map, show)
+import Data.Set (Set, empty, insert, delete, member) --hiding (map, show, filter)
 import Data.Map.Strict (Map)
+import Data.List ((\\), deleteFirstsBy)
 import Data.Function
 import System.Random
 
@@ -42,7 +43,13 @@ data GameState = Game
   { keysPressed :: Set Key 
   , paused :: Bool 
   , sprites :: SpriteCache
-  } --deriving Show                     -- TODO: debug output
+  } 
+  | GameOver
+  { keysPressed :: Set Key
+  , paused :: Bool 
+  , sprites :: SpriteCache
+  }
+  --deriving Show                     -- TODO: debug output
 
 -- | The starting state for the game.
 initialState :: GameState
@@ -55,7 +62,7 @@ initialState = WelcomeScreen
 -- | Transfering loaded sprites into GameState
 initialLoadedGameState :: SpriteCache -> GameState
 initialLoadedGameState loadedSprites = Game  
-   { player = Player (0,(-150)) 100 0 (sSpaceshipSprites loadedSprites) noMovement
+   { player = Player (0,(-150)) 100 100 0 (sSpaceshipSprites loadedSprites) noMovement
   -- enemies = []
   -- obstacle = []
   , obstaclesAsteroids = []
@@ -67,24 +74,6 @@ initialLoadedGameState loadedSprites = Game
   , generator = mkStdGen(23456)
   , sprites = loadedSprites
   }
- 
-{- 
--- | The starting state for the game.
-initialGameState :: GameState
-initialGameState = Game
-  { player = Player (0,(-150)) 100 0 loadSpaceshipSprites noMovement
-  -- enemies = []
-  -- obstacle = []
-  , obstaclesAsteroids = []
-  , playerProjectiles = []
-  -- enemiesProjectiles = []
-  -- timeFromLastAddedEnemy = 0
-  , keysPressed = empty
-  , paused = False
-  , generator = mkStdGen(23456)
-  , sprites = loadAllSprites
-  }
--}
 
 -- DRAW FUNCTIONS --
 
@@ -102,15 +91,27 @@ drawWelcomeScreen spriteFont =
     centerText :: [Char] -> Map Char Picture -> Picture
     centerText text font = center (length text) $ makeSpriteText text font
   
-drawInfo :: Map Char Picture -> Picture
-drawInfo spriteFont = 
-  --Scale textScale textScale $
-    --color red $
-      pictures
-      [ rowOrder 1 $ makeSpriteText "Lives:" spriteFont
-      , rowOrder 2 $ makeSpriteText "Score:" spriteFont
-      --, rowOrder 3 $ makeSpriteText "" spriteFont
-      ]
+drawGameOverScreen :: Map Char Picture -> Picture
+drawGameOverScreen spriteFont = 
+  pictures
+  [ Scale 2 2 $ rowOrder (-2) $ centerText "GAME OVER" spriteFont
+  , rowOrder 2 $ centerText "Press R to restart" spriteFont
+  ]
+  where
+    rowOrder :: Float -> Picture -> Picture
+    rowOrder number = translate 0 (fromIntegral (-imageSpriteFontSize) * number)
+    center :: Int -> Picture -> Picture
+    center length = translate (-(fromIntegral ((length)*imageSpriteFontSize) / 2.0)) 0
+    centerText :: [Char] -> Map Char Picture -> Picture
+    centerText text font = center (length text) $ makeSpriteText text font 
+
+drawInfo :: Map Char Picture -> Int -> Picture
+drawInfo spriteFont health = 
+  pictures
+  [ rowOrder 1 $ makeSpriteText ("Health:"++(show health)) spriteFont
+  , rowOrder 2 $ makeSpriteText "Score:" spriteFont
+  --, rowOrder 3 $ makeSpriteText "" spriteFont
+  ]
   where
     rowOrder :: Float -> Picture -> Picture
     rowOrder number = translate 0 (fromIntegral (-imageSpriteFontSize) * number)
@@ -150,14 +151,8 @@ drawDebugInfo game =
     
 drawPauseScreen :: Map Char Picture -> Picture
 drawPauseScreen spriteFont =
-  --Scale 0.5 0.5 $
-    --translate (-250) 0 $
-      --color yellow $
-        --Text "PAUSED" 
-    centerText "PAUSED" spriteFont       
+  centerText "PAUSED" spriteFont       
   where
-    --rowOrder :: Float -> Picture -> Picture
-    --rowOrder number = translate 0 (fromIntegral (-imageSpriteFontSize) * number)
     center :: Int -> Picture -> Picture
     center length = translate (-(fromIntegral ((length)*imageSpriteFontSize) / 2.0)) 0
     centerText :: [Char] -> Map Char Picture -> Picture
@@ -168,10 +163,12 @@ render :: GameState  -- ^ The game state to render.
        -> Picture    -- ^ A picture of this game state.
 render game@(WelcomeScreen _ _ sprites) = 
   pictures [drawWelcomeScreen (sSpriteFont sprites)]
+render game@(GameOver _ _ sprites) =
+  pictures [drawGameOverScreen (sSpriteFont sprites)]
 render game =
   pictures 
   [ translate (iWidth /. 2) 0 $ pictures [walls,projectiles,spaceship,reloadBar, asteroids] -- all game objects
-  , translateToInfoSideBar (height /. 2 ) $ drawInfo (sSpriteFont (sprites game))
+  , translateToInfoSideBar (height /. 2 ) $ drawInfo (sSpriteFont (sprites game)) (pHealth (player game))
   , translateToInfoSideBar 0 $ drawControlsInfo (sSpriteFont (sprites game))
   , translateToInfoSideBar (-height /. 2 ) $ drawDebugInfo game
   , if (paused game) then translate (iWidth /. 2) 0 $ drawPauseScreen (sSpriteFont (sprites game)) else Blank
@@ -227,8 +224,8 @@ updateAsteroidsInGame seconds game =
         game { obstaclesAsteroids = Prelude.map (updateAsteroid seconds) (obstaclesAsteroids game) }
 
 -- | Collision between asteroids and projectiles
-handleProjectilesAsteroidsCollision :: Float -> GameState -> GameState
-handleProjectilesAsteroidsCollision seconds game =
+handleProjectilesAsteroidsCollision :: GameState -> GameState
+handleProjectilesAsteroidsCollision game =
         game { obstaclesAsteroids = Prelude.map (\x-> snd x) remaindAsteroids
              , playerProjectiles = Prelude.map (\x-> snd x) remaindProjectiles}
         where
@@ -252,7 +249,7 @@ checkForAsteoridProjectileCollision asteroid projectile = centerDistance > radiu
         pw = 4 --projectile radius
         centerDistance = (ax-px)^2 + (ay-py)^2
         radiusSum = (aw + pw)^2
-        
+
 returnAsteroidIndices :: [((Int , Asteroid),(Int, Projectile))] -> [((Int , Asteroid),(Int, Projectile))]->[Int]
 returnAsteroidIndices  unfilteredList filteredList = asteroidIndices
         where 
@@ -264,6 +261,43 @@ returnProjectileIndices  unfilteredList filteredList = projectileIndices
         where 
         projectilesForRemoving = Prelude.filter (\x-> (elem x filteredList) == False) unfilteredList
         projectileIndices = Prelude.foldl (\acc x -> (fst (snd x)) : acc) [] projectilesForRemoving
+  
+  
+-- | Collision between asteroids and player
+handlePlayerAsteroidsCollision :: GameState -> GameState
+handlePlayerAsteroidsCollision game =
+  game { player = damagePlayer totalDamage (player game) 
+       , obstaclesAsteroids = map snd notCollidedAsteroids
+       }
+  where
+  asteroids = zip [1..] $ obstaclesAsteroids game
+  notCollidedAsteroids = filter (not . (checkForPlayerAsteroidCollision (player game)) . snd) asteroids  
+  totalDamage = ((length asteroids) - (length notCollidedAsteroids)) * asteroidDamageToPlayer
+
+-- | Checks if there is collision between a single asteroid and player
+-- Asteroid is treated as a circle and Player is treated as a rectangle
+-- Implementation: Check if circle center (asteroid center) is inside Minkowski
+-- sum of rectangle (player) and circle (asteroid)
+checkForPlayerAsteroidCollision :: PlayerState -> Asteroid -> Bool
+checkForPlayerAsteroidCollision player asteroid = 
+  if (distanceX > (pw+ar)) then False
+  else if (distanceY > (ph+ar)) then False
+  else if (distanceX <= pw) then True
+  else if (distanceY <= ph) then True
+  else ( (square(distanceX-pw) + square(distanceY-ph)) <= (square ar) )
+  where
+    (ax, ay) = aPosition asteroid -- asteroid center
+    ar = aWidth asteroid / 2 - spriteCorrection -- asteroid (circle) radius
+    (px, py') = pPosition player
+    py = (shipSizeHt - shipSizeHb) / 2 + py' -- actual center of spaceship rectangle
+    pw = shipSizeWh  -- half of spaceship's width
+    ph = (shipSizeHt + shipSizeHb) / 2 -- half of spaceship's height
+    distanceX = abs(ax-px)
+    distanceY = abs(ay-py)
+    square :: Float -> Float
+    square x = x * x
+    spriteCorrection = 5 -- wiggle room for sprites not being perfect circle and rectangle
+
 
 -- | Add asteroids to the game
 addAsteroidsToGame :: Float -> GameState -> GameState
@@ -315,10 +349,14 @@ deleteAsteroidsFromGame game =
 
 -- | Update the game
 update :: Float -> GameState -> GameState 
-update _ game@(WelcomeScreen _ _ loadedSprites) = if not (paused game)
+update _ game@(WelcomeScreen _ _ loadedSprites) = 
+  if not (paused game)
   then game
   else initialLoadedGameState loadedSprites
-update seconds game = if not (paused game) 
+update _ game@(GameOver _ _ _) = game
+update seconds game = if (pHealth (player game)) <= 0
+                      then (GameOver (keysPressed game) False (sprites game))
+                      else if not (paused game) 
                       then 
                         projectileFiredByPlayer .
                         updatePlayerProjectilesInGame seconds . 
@@ -326,7 +364,8 @@ update seconds game = if not (paused game)
                         updateAsteroidsInGame seconds .
                         addAsteroidsToGame seconds .
                         deleteAsteroidsFromGame .
-                        handleProjectilesAsteroidsCollision seconds .
+                        handlePlayerAsteroidsCollision .
+                        handleProjectilesAsteroidsCollision .
                         updatePlayerInGame seconds $ 
                         game
                       else 
@@ -352,6 +391,13 @@ handleKeys (EventKey (Char 'r') Down _ _) game = initialState
 
 -- Ignore 'r' keypress release
 handleKeys (EventKey (Char 'r') Up _ _) game = game
+
+-- For an 'k' keypress, kill the player (for testing)
+handleKeys (EventKey (Char 'k') Down _ _) game = 
+  game { player = damagePlayer 100 (player game) }
+
+-- Ignore 'k' keypress release
+handleKeys (EventKey (Char 'k') Up _ _) game = game
 
 -- Remember all keys being pressed
 handleKeys (EventKey key Down _ _) game =

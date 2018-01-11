@@ -36,6 +36,10 @@ highestAsteroidSpeedX = 40.0
 lowestAsteroidSpeedY = -40.0
 highestAsteroidSpeedY = -10.0
 
+-- | Object interaction
+asteroidDamageToPlayer :: Int --percent of damage taken when colliding with asteroid
+asteroidDamageToPlayer = 20
+
 -- | Images of objects.
 imageOfAsteroid :: String
 imageOfAsteroid = "images/asteroid_day_favicon.png"
