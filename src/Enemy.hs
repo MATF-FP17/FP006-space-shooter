@@ -1,5 +1,6 @@
 module Enemy
   ( Enemy (Enemy) 
+  , ePosition
   , drawEnemy
   , updateEnemy
   , deleteOutOfBoundsEnemies

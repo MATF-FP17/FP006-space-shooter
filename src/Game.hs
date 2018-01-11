@@ -14,7 +14,7 @@ import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
 import Data.Set (Set, empty, insert, delete, member)
 import Data.Map.Strict (Map)
---import Data.List ((\\), deleteFirstsBy)
+import Data.List ((\\), deleteFirstsBy)
 import Data.Function (on)
 import System.Random (StdGen, mkStdGen, randomR)
 
@@ -133,7 +133,9 @@ drawDebugInfo game =
   Scale debugTextScale debugTextScale $ 
     color red $ 
       pictures 
-      [ rowROrder 7 $ Text "DEBUG INFO"
+      [ rowROrder 8 $ Text "DEBUG INFO"
+      , rowROrder 7 $ Text $ "No. of enemies: " ++ 
+          show (length (enemies game))
       , rowROrder 6 $ Text $ "No. of asteroids: " ++ 
           show (length (obstaclesAsteroids game))
       , rowROrder 5 $ Text $ "No. of player's projectiles: " ++ 
@@ -255,7 +257,7 @@ checkForAsteoridProjectileCollision asteroid projectile = centerDistance > radiu
         (ax, ay) = aPosition asteroid
         aw = aWidth asteroid / 2 --asteroid radius
         (px, py) = rPosition projectile
-        pw = 4 --projectile radius
+        pw = projectileRadius
         centerDistance = (ax-px)^2 + (ay-py)^2
         radiusSum = (aw + pw)^2
 
@@ -271,7 +273,28 @@ returnProjectileIndices  unfilteredList filteredList = projectileIndices
         projectilesForRemoving = Prelude.filter (\x-> (elem x filteredList) == False) unfilteredList
         projectileIndices = Prelude.foldl (\acc x -> (fst (snd x)) : acc) [] projectilesForRemoving
   
-  
+ 
+
+-- | Checks if there is collision between given circle and rectangle
+-- Argumetns: Circle center -> Circle radius -> Rectangle center -> Rectangle
+-- width and height
+-- Implementation: Check if circle center is inside Minkowski sum of rectangle 
+-- and circle
+circleRectangleCollision :: (Float,Float) -> (Float) -> (Float, Float) -> (Float,Float) -> Bool
+circleRectangleCollision (cx,cy) cr (rx,ry) (rw,rh) =
+  if (distanceX > (rw2+cr)) then False
+  else if (distanceY > (rh2+cr)) then False
+  else if (distanceX <= rw2) then True
+  else if (distanceY <= rh2) then True
+  else ( (square(distanceX-rw2) + square(distanceY-rh2)) <= (square cr) )
+  where 
+    rw2 = rw / 2.0
+    rh2 = rh / 2.0
+    distanceX = abs (cx-rx)
+    distanceY = abs (cy-ry)
+    square :: Float -> Float
+    square x = x * x
+    
 -- | Collision between asteroids and player
 handlePlayerAsteroidsCollision :: GameState -> GameState
 handlePlayerAsteroidsCollision game =
@@ -285,26 +308,16 @@ handlePlayerAsteroidsCollision game =
 
 -- | Checks if there is collision between a single asteroid and player
 -- Asteroid is treated as a circle and Player is treated as a rectangle
--- Implementation: Check if circle center (asteroid center) is inside Minkowski
--- sum of rectangle (player) and circle (asteroid)
 checkForPlayerAsteroidCollision :: PlayerState -> Asteroid -> Bool
 checkForPlayerAsteroidCollision player asteroid = 
-  if (distanceX > (pw+ar)) then False
-  else if (distanceY > (ph+ar)) then False
-  else if (distanceX <= pw) then True
-  else if (distanceY <= ph) then True
-  else ( (square(distanceX-pw) + square(distanceY-ph)) <= (square ar) )
+  circleRectangleCollision (ax,ay) ar (px,py) (pw,ph)
   where
     (ax, ay) = aPosition asteroid -- asteroid center
     ar = aWidth asteroid / 2 - spriteCorrection -- asteroid (circle) radius
     (px, py') = pPosition player
     py = (shipSizeHt - shipSizeHb) / 2 + py' -- actual center of spaceship rectangle
-    pw = shipSizeWh  -- half of spaceship's width
-    ph = (shipSizeHt + shipSizeHb) / 2 -- half of spaceship's height
-    distanceX = abs(ax-px)
-    distanceY = abs(ay-py)
-    square :: Float -> Float
-    square x = x * x
+    pw = shipSizeWh * 2  -- spaceship's width
+    ph = (shipSizeHt + shipSizeHb) -- spaceship's height
     spriteCorrection = 5 -- wiggle room for sprites not being perfect circle and rectangle
 
 
@@ -334,7 +347,6 @@ addEnemiesToGame seconds game =
             , timeToAddNewEnemy = enemySpawnTime + (timeToAddNewEnemy game)
             , generator = gen'}
   where
-    --newEnemy = Enemy (0,150) (0,-50) 
     gen = generator game
     newEnemy = Enemy (ex,ey) (sx,sy) (sEnemySprites (sprites game))
     enemyWidth = 20.0
@@ -343,8 +355,41 @@ addEnemiesToGame seconds game =
     --(sx,gen'') = randomR (0,0) gen' :: (Float, StdGen)
     sx = 0
     (sy,gen'') = randomR (-75,-25) gen' :: (Float, StdGen)
-    
+   
 
+-- | Collision between enemies and projectiles
+handleEnemiesProjectilesCollision :: GameState -> GameState
+handleEnemiesProjectilesCollision game =
+  game { enemies = map snd remainingEnemies
+       , playerProjectiles = map snd remainingProjectiles
+       , player = addScoreToPlayer score (player game)
+       }
+  where
+    indexedEnemies = zip [1..] (enemies game)
+    indexedProjectiles = zip [1..] (playerProjectiles game)
+    pairsEnemiesProjectiles = [(e,p) | e <- indexedEnemies, p <- indexedProjectiles]
+    collidedPairs = filter (\x -> checkForEnemiesProjectilesCollision (snd(fst x)) (snd (snd x))) pairsEnemiesProjectiles
+    collidedEnemies = map fst collidedPairs
+    collidedProjectiles = map snd collidedPairs 
+    remainingEnemies = deleteFirstsBy sameIndex indexedEnemies collidedEnemies
+    remainingProjectiles = deleteFirstsBy sameIndex indexedProjectiles collidedProjectiles
+    score = ((length indexedEnemies) - (length remainingEnemies)) * enemyDestructionScore
+    sameIndex :: (Int,a) -> (Int,a) -> Bool
+    sameIndex (i1,_) (i2,_) = (i1==i2)
+
+    
+-- | Checks if there is collision between an enemy and a projectile
+-- Projectile is treated as a circle and Enemy is treated as a rectangle
+checkForEnemiesProjectilesCollision :: Enemy -> Projectile -> Bool
+checkForEnemiesProjectilesCollision enemy projectile = 
+  circleRectangleCollision (px,py) pr (ex,ey) (ew,eh)
+  where
+    (px,py) = rPosition projectile
+    pr = projectileRadius
+    (ex,ey) = ePosition enemy
+    (ew,eh) = (enemySizeW - spriteCorrection, enemySizeH - spriteCorrection)
+    spriteCorrection = 5 -- wiggle room for sprites not being perfect circle and rectangle
+    
 -- | Player fired a projectile
 projectileFiredByPlayer :: GameState -> GameState
 projectileFiredByPlayer game = 
@@ -421,6 +466,7 @@ update seconds game = if (pHealth (player game)) <= 0
                         updateAsteroidsInGame seconds .
                         addAsteroidsToGame seconds .
                         deleteAsteroidsFromGame .
+                        handleEnemiesProjectilesCollision .
                         handlePlayerAsteroidsCollision .
                         handleProjectilesAsteroidsCollision .
                         deleteEnemiesFromGame .

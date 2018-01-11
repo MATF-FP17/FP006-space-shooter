@@ -27,6 +27,8 @@ projectileSpeed = 200   -- projectile default speed
 enemySizeH, enemySizeW :: Float
 enemySizeW = 40.0       -- enemy's width in game
 enemySizeH = 40.0       -- enemy's height in game
+projectileRadius :: Float
+projectileRadius = 4    -- radius of all ingame projectiles
 
 -- | Number of frames to show per second.
 fps :: Int
@@ -42,8 +44,9 @@ highestAsteroidSpeedY = -10.0
 -- | Object interaction and Gameplay
 asteroidDamageToPlayer :: Int --percent of damage taken when colliding with asteroid
 asteroidDamageToPlayer = 20
-asteroidDestructionScore :: Int
+asteroidDestructionScore , enemyDestructionScore :: Int
 asteroidDestructionScore = 5
+enemyDestructionScore = 10
 enemySpawnTime :: Float 
 enemySpawnTime = 2
 
