@@ -11,8 +11,7 @@ module Projectile
 import Constants
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
-import Data.Set hiding (filter)
-import Data.Function
+import Data.Function (on)
 import SpriteAnimation
 
 (/.) = (/) `on` fromIntegral -- divides two Integrals as Floats

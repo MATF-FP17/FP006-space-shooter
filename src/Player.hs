@@ -20,9 +20,9 @@ import Constants
 import Graphics.Gloss
 import Graphics.Gloss.Game
 import Graphics.Gloss.Interface.Pure.Game
-import Data.Set hiding (show)
-import Data.Function
-import Numeric
+import Data.Set (Set, member)
+import Data.Function (on)
+import Numeric (showFFloat)
 
 (/.) = (/) `on` fromIntegral -- divides two Integrals as Floats
 

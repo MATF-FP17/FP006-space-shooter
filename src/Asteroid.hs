@@ -13,8 +13,7 @@ module Asteroid
 import Constants
 import Graphics.Gloss.Game
 import Graphics.Gloss
-import Data.Set
-import Data.Function
+import Data.Function (on)
 
 (/.) = (/) `on` fromIntegral -- divides two Integrals as Floats
 

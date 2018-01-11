@@ -11,11 +11,11 @@ import SpriteAnimation
 import SpriteText
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
-import Data.Set (Set, empty, insert, delete, member) --hiding (map, show, filter)
+import Data.Set (Set, empty, insert, delete, member)
 import Data.Map.Strict (Map)
-import Data.List ((\\), deleteFirstsBy)
-import Data.Function
-import System.Random
+--import Data.List ((\\), deleteFirstsBy)
+import Data.Function (on)
+import System.Random (StdGen, mkStdGen, randomR)
 
 (/.) = (/) `on` fromIntegral -- divides two Integrals as Floats
 
