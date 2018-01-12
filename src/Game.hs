@@ -244,7 +244,7 @@ updateAsteroidsInGame seconds game =
 -- | Collision between asteroids and projectiles
 handleProjectilesAsteroidsCollision :: GameState -> GameState
 handleProjectilesAsteroidsCollision game =
-        game { obstaclesAsteroids = Prelude.map (\x-> snd x) remaindAsteroids
+        game { obstaclesAsteroids = smallerAsteroidsFromBigger ++  Prelude.map (\x-> snd x) remaindRegularAsteroids 
              , playerProjectiles = Prelude.map (\x-> snd x) remaindProjectiles
              , player = addScoreToPlayer score (player game)
              }
@@ -255,7 +255,16 @@ handleProjectilesAsteroidsCollision game =
         asteroidProjectilesListFiltered = Prelude.filter (\x -> checkForAsteoridProjectileCollision  (snd ( fst x)) (snd ( snd x))) asteroidProjectilesList
         asteroidIndicesForRemove = returnAsteroidIndices asteroidProjectilesList asteroidProjectilesListFiltered
         projectileIndicesForRemove = returnProjectileIndices asteroidProjectilesList asteroidProjectilesListFiltered
-        remaindAsteroids = Prelude.filter (\x->  (elem (fst x) asteroidIndicesForRemove) == False) asteroids
+        remaindRegularAsteroids = Prelude.filter (\x->  (elem (fst x) asteroidIndicesForRemove) == False) asteroids
+        bigAsteroidsForRemoveIndices = Prelude.filter (\x->  (elem (fst x) asteroidIndicesForRemove) == True && aWidth (snd x) == widthAsteroidBig) asteroids
+        bigAsteroidsForRemove = Prelude.map (\x -> (snd x)) bigAsteroidsForRemoveIndices
+        gen = generator game
+        (speedX1, gen') = randomR (lowestAsteroidSpeedX, highestAsteroidSpeedX) gen ::(Float, StdGen)
+        (speedY1, gen'') = randomR (lowestAsteroidSpeedY,highestAsteroidSpeedY) gen' ::(Float, StdGen)
+        (speedX2, gen''') = randomR (lowestAsteroidSpeedX, highestAsteroidSpeedX) gen'' ::(Float, StdGen)
+        (speedY2, gen'''') = randomR (lowestAsteroidSpeedY,highestAsteroidSpeedY) gen''' ::(Float, StdGen)
+        (deg, gen''''') = randomR (15,30) gen'''' ::(Float, StdGen)
+        smallerAsteroidsFromBigger = Prelude.foldl (\acc x ->  (Asteroid (aPosition x) widthAsteroidSmall (speedX1,speedY1) deg (sAsteroidSpriteSmall (sprites game))) : (Asteroid (aPosition x) widthAsteroidSmall ((-speedX1),speedY2) deg (sAsteroidSpriteSmall (sprites game))) : acc) [] bigAsteroidsForRemove
         remaindProjectiles = Prelude.filter (\x-> (elem (fst x) projectileIndicesForRemove) == False) projectiles
         score = length asteroidIndicesForRemove * asteroidDestructionScore
  
@@ -342,9 +351,9 @@ addAsteroidsToGame seconds game =
     (speedX, gen''') = randomR (lowestAsteroidSpeedX, highestAsteroidSpeedX) gen'' ::(Float, StdGen)
     (speedY, gen'''') = randomR (lowestAsteroidSpeedY,highestAsteroidSpeedY) gen''' ::(Float, StdGen)
     (deg, gen''''') = randomR (15,30) gen'''' ::(Float, StdGen)
-    (smallbig, gen'''''') = randomR (1,6) gen''''' ::(Float, StdGen)
-    newObstaclesAsteroids = if (step>598) 
-                            then  if (smallbig < 3) 
+    (smallbig, gen'''''') = randomR (1,6) gen''''' ::(Int, StdGen)
+    newObstaclesAsteroids = if (step>597) 
+                            then  if (smallbig <= 3) 
                                      then (Asteroid (x',y') widthAsteroidSmall (speedX,speedY) deg (sAsteroidSpriteSmall (sprites game))) : oldObstaclesAsteroids
                                      else (Asteroid (x',y') widthAsteroidBig (speedX,speedY) deg (sAsteroidSpriteBig (sprites game))) : oldObstaclesAsteroids
                             else oldObstaclesAsteroids
