@@ -44,11 +44,16 @@ highestAsteroidSpeedY = -10.0
 -- | Object interaction and Gameplay
 asteroidDamageToPlayer :: Int --percent of damage taken when colliding with asteroid
 asteroidDamageToPlayer = 20
+enemyProjectileDamageToPlayer :: Int --percent of damage taken when hit by an enemy projectile
+enemyProjectileDamageToPlayer = 10
 asteroidDestructionScore , enemyDestructionScore :: Int
 asteroidDestructionScore = 5
 enemyDestructionScore = 10
 enemySpawnTime :: Float 
 enemySpawnTime = 2
+enemyReloadTime, enemyInitialReloadTime :: Float
+enemyReloadTime = 1.9
+enemyInitialReloadTime = 3
 
 -- | Images of objects.
 imageOfAsteroid :: String

@@ -3,6 +3,8 @@ module Enemy
   , ePosition
   , drawEnemy
   , updateEnemy
+  , canEnemyFireProjectile
+  , reloadEnemy
   , deleteOutOfBoundsEnemies
   ) where
 
@@ -20,6 +22,7 @@ import Data.Function (on)
 data Enemy = Enemy
   { ePosition :: (Float, Float) -- enemy coordinates
   , eSpeed :: (Float, Float)    -- enemy movement speed
+  , eInReload :: Float          -- time left until a projectile can be fired again
   --, eHealth :: Int              -- enemy's health (spaceship's hull integrity)
   , eSprites :: [Picture]       -- all sprites of enemy's spaceship
   } deriving Show
@@ -36,12 +39,15 @@ drawEnemy enemy =
  
 updateEnemy :: Float -> Enemy -> Enemy
 updateEnemy seconds enemy = 
-  enemy { ePosition = (nx', ny') }
+  enemy { ePosition = (nx', ny') 
+        , eInReload = nReload }
   where
     (nx,ny) = ePosition enemy
     (sx,sy) = eSpeed enemy
     nx' = nx + seconds * sx
     ny' = ny + seconds * sy 
+    nReload :: Float
+    nReload = max 0 ((eInReload enemy) - seconds)
     
 -- | Checks if an Enemy has exited the screen
 enemyInBounds :: Enemy -> Bool
@@ -58,3 +64,13 @@ enemyInBounds enemy =
 -- | Removes all enemies that have exited the screen
 deleteOutOfBoundsEnemies :: [Enemy] -> [Enemy]
 deleteOutOfBoundsEnemies enemies = filter enemyInBounds enemies
+
+-- | Checks if the enemy is not reloading at the current time
+canEnemyFireProjectile :: Enemy -> Bool
+canEnemyFireProjectile enemy = (eInReload enemy <= 0)
+  
+-- | Resets reload timer. Called after a projectile is fired
+reloadEnemy :: Enemy -> Enemy
+reloadEnemy enemy = enemy { eInReload = enemyReloadTime }
+
+

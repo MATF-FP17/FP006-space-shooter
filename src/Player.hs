@@ -8,8 +8,8 @@ module Player
   , pScore
   , damagePlayer
   , addScoreToPlayer
-  , canFireProjectile
-  , reload
+  , canPlayerFireProjectile
+  , reloadPlayer
   , noMovement
   , debugPlayerPosition
   , debugPlayerSpeed
@@ -120,12 +120,12 @@ drawReloadBar player =
     percentage = (pInReload player) / (playerReloadTime)
 
 -- | Checks if the player is not reloading at the current time
-canFireProjectile :: PlayerState -> Bool
-canFireProjectile player = if (pInReload player <= 0) then True else False
+canPlayerFireProjectile :: PlayerState -> Bool
+canPlayerFireProjectile player = (pInReload player <= 0)
   
 -- | Resets reload timer. Called after a projectile is fired
-reload :: PlayerState -> PlayerState
-reload player = player { pInReload = playerReloadTime }
+reloadPlayer :: PlayerState -> PlayerState
+reloadPlayer player = player { pInReload = playerReloadTime }
 
 -- | Update the player
 updatePlayer :: Set Key -> Float -> PlayerState -> PlayerState
