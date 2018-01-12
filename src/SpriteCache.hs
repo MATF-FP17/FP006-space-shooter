@@ -6,7 +6,8 @@ module SpriteCache
   , sProjectileSprites
   , sSpaceshipSprites
   , sEnemySprites
-  , sAsteroidSprite
+  , sAsteroidSpriteSmall
+  , sAsteroidSpriteBig
   , sSpriteFont
   ) where
 
@@ -19,7 +20,8 @@ data SpriteCache = SpriteCache
   { sProjectileSprites :: [[Picture]]
   , sSpaceshipSprites :: [Picture]
   , sEnemySprites :: [Picture]
-  , sAsteroidSprite :: Picture
+  , sAsteroidSpriteSmall :: Picture
+  , sAsteroidSpriteBig :: Picture
   , sSpriteFont :: Map Char Picture  
   } deriving (Show)
   
@@ -27,7 +29,8 @@ loadAllSprites :: SpriteCache
 loadAllSprites = SpriteCache loadProjectileSpirtes 
                              loadSpaceshipSprites 
                              loadEnemySprites 
-                             loadAsteroidSprite 
+                             loadAsteroidSpriteSmall 
+                             loadAsteroidSpriteBig
                              loadSpriteFont
   
 loadProjectileSpirtes :: [[Picture]]
@@ -72,9 +75,12 @@ loadEnemySprites =
   , png imageEnemyRight
   ]
   
-loadAsteroidSprite :: Picture
-loadAsteroidSprite = png imageOfAsteroid
+loadAsteroidSpriteSmall :: Picture
+loadAsteroidSpriteSmall = png imageOfAsteroidSmall
   
+loadAsteroidSpriteBig :: Picture
+loadAsteroidSpriteBig = png imageOfAsteroidBig
+ 
 loadSpriteFont :: Map Char Picture  
 loadSpriteFont = fromList loadSpriteFont'
   

@@ -332,7 +332,7 @@ checkForPlayerAsteroidCollision player asteroid =
 -- | Add asteroids to the game
 addAsteroidsToGame :: Float -> GameState -> GameState
 addAsteroidsToGame seconds game =
-    game { obstaclesAsteroids = newObstaclesAsteroids, generator = gen''''' }
+    game { obstaclesAsteroids = newObstaclesAsteroids, generator = gen'''''' }
     where
     oldObstaclesAsteroids = obstaclesAsteroids game
     gen = generator game
@@ -341,9 +341,12 @@ addAsteroidsToGame seconds game =
     (step,gen'') = randomR (1,600) gen' ::(Int, StdGen)
     (speedX, gen''') = randomR (lowestAsteroidSpeedX, highestAsteroidSpeedX) gen'' ::(Float, StdGen)
     (speedY, gen'''') = randomR (lowestAsteroidSpeedY,highestAsteroidSpeedY) gen''' ::(Float, StdGen)
-    (deg, gen''''') = randomR (15,30) gen''' ::(Float, StdGen)
+    (deg, gen''''') = randomR (15,30) gen'''' ::(Float, StdGen)
+    (smallbig, gen'''''') = randomR (1,6) gen''''' ::(Float, StdGen)
     newObstaclesAsteroids = if (step>598) 
-                            then (Asteroid (x',y') 32.0 (speedX,speedY) deg (sAsteroidSprite (sprites game))) : oldObstaclesAsteroids
+                            then  if (smallbig < 3) 
+                                     then (Asteroid (x',y') widthAsteroidSmall (speedX,speedY) deg (sAsteroidSpriteSmall (sprites game))) : oldObstaclesAsteroids
+                                     else (Asteroid (x',y') widthAsteroidBig (speedX,speedY) deg (sAsteroidSpriteBig (sprites game))) : oldObstaclesAsteroids
                             else oldObstaclesAsteroids
   
 -- | Add enemies to the game                          
