@@ -27,7 +27,7 @@ background :: Color
 background = black
 
 -- | Data describing the state of the game. 
-data GameState = Game
+data GameState = Game                 -- Game in progress
   { player :: PlayerState             -- state of the player
   , enemies :: [Enemy]                -- list of enemies
   , obstaclesAsteroids :: [Asteroid]  -- list of obstcales
@@ -38,15 +38,15 @@ data GameState = Game
   , paused :: Bool                    -- shows if the game is currently paused
   , generator :: StdGen               -- seed for random numbers
   , sprites :: SpriteCache            -- cache with all game spirtes
-  } 
-  | WelcomeScreen
-  { keysPressed :: Set Key 
-  , sprites :: SpriteCache
-  } 
-  | GameOver
+  }
+  | WelcomeScreen                     -- Program's strating screen
   { keysPressed :: Set Key
   , sprites :: SpriteCache
-  , score :: Int
+  } 
+  | GameOver                          -- Screen show after player's death
+  { keysPressed :: Set Key
+  , sprites :: SpriteCache
+  , score :: Int                      -- player's score from game
   }
 
 -- | The starting state for the game.
@@ -148,7 +148,7 @@ drawDebugInfo game =
   where
     rowROrder :: Float -> Picture -> Picture
     rowROrder number = translate 0 (textHeight * number)
-    
+
 drawPauseScreen :: Map Char Picture -> Picture
 drawPauseScreen spriteFont =
   centerText "PAUSED" spriteFont       
@@ -157,13 +157,13 @@ drawPauseScreen spriteFont =
     center length = translate (-(fromIntegral ((length)*imageSpriteFontSize) / 2.0)) 0
     centerText :: [Char] -> Map Char Picture -> Picture
     centerText text font = center (length text) $ makeSpriteText text font
-  
+
 -- | Convert a game state into a picture.
 render :: GameState  -- ^ The game state to render.
        -> Picture    -- ^ A picture of this game state.
-render game@(WelcomeScreen _ sprites) = 
+render (WelcomeScreen _ sprites) = 
   pictures [drawWelcomeScreen (sSpriteFont sprites)]
-render game@(GameOver _ sprites score) =
+render (GameOver _ sprites score) =
   pictures [drawGameOverScreen (sSpriteFont sprites) score]
 render game =
   pictures 
@@ -176,11 +176,11 @@ render game =
   where
     translateToInfoSideBar :: Float -> Picture -> Picture
     translateToInfoSideBar h = translate ((-width /. 2) + (-iWidth /. 2)) h
-  
+
     -- player's spaceship
     spaceship :: Picture
     spaceship = drawSpaceShip (player game)
-    
+
     reloadBar :: Picture
     reloadBar = drawReloadBar (player game)
 
@@ -194,11 +194,11 @@ render game =
     wallColor = greyN 0.5
     walls = pictures [wall ((width /. 2) - (wallBoundWidth / 2)), 
                       wall (( (-width) /. 2) + (wallBoundWidth / 2))]
-    
+
     -- Player projectiles
     projectiles :: Picture
     projectiles = pictures $ map drawProjectile (playerProjectiles game) 
-    
+
     -- Asteroids
     asteroids :: Picture
     asteroids = pictures $ map drawAsteroid (obstaclesAsteroids game)
@@ -206,14 +206,14 @@ render game =
     -- Enemies
     allEnemies :: Picture
     allEnemies = pictures $ map drawEnemy (enemies game)
-    
+
     -- Enemy projectiles
     eProjectiles :: Picture
     eProjectiles = pictures $ map drawProjectile (enemyProjectiles game)
 
 
 -- UPDATE FUNCTIONS -- TODO: Combine all into one update function
-    
+
 -- | Calls updatePlayer for Game
 updatePlayerInGame :: Float -> GameState -> GameState
 updatePlayerInGame seconds game =
@@ -224,18 +224,18 @@ updatePlayerProjectilesInGame :: Float -> GameState -> GameState
 updatePlayerProjectilesInGame seconds game = 
   game { playerProjectiles = 
            map (updateProjectile seconds) (playerProjectiles game) }
-           
+
 -- | Update all projectiles fired by enemies for Game
 updateEnemyProjectilesInGame :: Float -> GameState -> GameState
 updateEnemyProjectilesInGame seconds game = 
   game { enemyProjectiles = 
            map (updateProjectile seconds) (enemyProjectiles game) }
- 
+
 -- | Update all enemies in Game
 updateEnemiesInGame :: Float -> GameState -> GameState
 updateEnemiesInGame seconds game =
   game { enemies = map (updateEnemy seconds) (enemies game) }
- 
+
 -- | Update asteroids
 updateAsteroidsInGame :: Float -> GameState -> GameState
 updateAsteroidsInGame seconds game = 
@@ -267,8 +267,8 @@ handleProjectilesAsteroidsCollision game =
         smallerAsteroidsFromBigger = Prelude.foldl (\acc x ->  (Asteroid (aPosition x) widthAsteroidSmall (speedX1,speedY1) deg (sAsteroidSpriteSmall (sprites game))) : (Asteroid (aPosition x) widthAsteroidSmall ((-speedX1),speedY2) deg (sAsteroidSpriteSmall (sprites game))) : acc) [] bigAsteroidsForRemove
         remaindProjectiles = Prelude.filter (\x-> (elem (fst x) projectileIndicesForRemove) == False) projectiles
         score = length asteroidIndicesForRemove * asteroidDestructionScore
- 
- 
+
+
 
 checkForAsteoridProjectileCollision :: Asteroid -> Projectile -> Bool
 checkForAsteoridProjectileCollision asteroid projectile = centerDistance > radiusSum
@@ -291,11 +291,10 @@ returnProjectileIndices  unfilteredList filteredList = projectileIndices
         where 
         projectilesForRemoving = Prelude.filter (\x-> (elem x filteredList) == False) unfilteredList
         projectileIndices = Prelude.foldl (\acc x -> (fst (snd x)) : acc) [] projectilesForRemoving
-  
- 
+
 
 -- | Checks if there is collision between given circle and rectangle
--- Argumetns: Circle center -> Circle radius -> Rectangle center -> Rectangle
+-- Arguments: Circle center -> Circle radius -> Rectangle center -> Rectangle
 -- width and height
 circleRectangleCollision :: (Float,Float) -> (Float) -> (Float, Float) -> (Float,Float) -> Bool
 circleRectangleCollision (cx,cy) cr (rx,ry) (rw,rh) =
@@ -311,16 +310,16 @@ circleRectangleCollision (cx,cy) cr (rx,ry) (rw,rh) =
     distanceY = abs (cy-ry)
     square :: Float -> Float
     square x = x * x
-    
+
 -- | Collision between asteroids and player
 handlePlayerAsteroidsCollision :: GameState -> GameState
 handlePlayerAsteroidsCollision game =
   game { player = damagePlayer totalDamage (player game) 
-       , obstaclesAsteroids = map snd notCollidedAsteroids
+       , obstaclesAsteroids = notCollidedAsteroids
        }
   where
-  asteroids = zip [1..] $ obstaclesAsteroids game
-  notCollidedAsteroids = filter (not . (checkForPlayerAsteroidCollision (player game)) . snd) asteroids  
+  asteroids = obstaclesAsteroids game
+  notCollidedAsteroids = filter (not . (checkForPlayerAsteroidCollision (player game)) ) asteroids  
   totalDamage = ((length asteroids) - (length notCollidedAsteroids)) * asteroidDamageToPlayer
 
 -- | Checks if there is collision between a single asteroid and player
@@ -357,8 +356,8 @@ addAsteroidsToGame seconds game =
                                      then (Asteroid (x',y') widthAsteroidSmall (speedX,speedY) deg (sAsteroidSpriteSmall (sprites game))) : oldObstaclesAsteroids
                                      else (Asteroid (x',y') widthAsteroidBig (speedX,speedY) deg (sAsteroidSpriteBig (sprites game))) : oldObstaclesAsteroids
                             else oldObstaclesAsteroids
-  
--- | Add enemies to the game                          
+
+-- | Add enemies to the game
 addEnemiesToGame :: Float -> GameState -> GameState
 addEnemiesToGame seconds game =
   if (timeToAddNewEnemy game) - seconds > 0
@@ -375,7 +374,7 @@ addEnemiesToGame seconds game =
     --(sx,gen'') = randomR (0,0) gen' :: (Float, StdGen)
     sx = 0
     (sy,gen'') = randomR (-75,-25) gen' :: (Float, StdGen)
-   
+
 
 -- | Collision between enemies and projectiles
 handleEnemiesProjectilesCollision :: GameState -> GameState
@@ -397,7 +396,7 @@ handleEnemiesProjectilesCollision game =
     sameIndex :: (Int,a) -> (Int,a) -> Bool
     sameIndex (i1,_) (i2,_) = (i1==i2)
 
-    
+
 -- | Checks if there is collision between an enemy and a projectile
 -- Projectile is treated as a circle and Enemy is treated as a rectangle
 checkForEnemiesProjectilesCollision :: Enemy -> Projectile -> Bool
@@ -409,18 +408,18 @@ checkForEnemiesProjectilesCollision enemy projectile =
     (ex,ey) = ePosition enemy
     (ew,eh) = (enemySizeW - spriteCorrection, enemySizeH - spriteCorrection)
     spriteCorrection = 5 -- wiggle room for sprites not being perfect circle and rectangle
-    
+
 -- | Collision between player and enemy projectiles
 handlePlayerProjectilesCollision :: GameState -> GameState
 handlePlayerProjectilesCollision game = 
   game { player = damagePlayer totalDamage (player game)
-       , enemyProjectiles = map snd notCollidedProjectiles
+       , enemyProjectiles = notCollidedProjectiles
        }
   where 
-    projectiles = zip [1..] $ enemyProjectiles game
-    notCollidedProjectiles = filter (not . (checkForPlayerProjectilesCollision (player game)) . snd) projectiles  
+    projectiles = enemyProjectiles game
+    notCollidedProjectiles = filter (not . (checkForPlayerProjectilesCollision (player game))) projectiles  
     totalDamage = ((length projectiles) - (length notCollidedProjectiles)) * enemyProjectileDamageToPlayer
- 
+
 -- | Checks if there is collision between the player and a projectile
 -- Projectile is treated as a circle and Player is treated as a rectangle
 checkForPlayerProjectilesCollision :: PlayerState -> Projectile -> Bool
@@ -434,7 +433,7 @@ checkForPlayerProjectilesCollision player projectile =
     pw = shipSizeWh * 2 - spriteCorrection  -- spaceship's width
     ph = (shipSizeHt + shipSizeHb) - (spriteCorrection * 2) -- spaceship's height
     spriteCorrection = 5 -- wiggle room for sprites not being perfect circle and rectangle    
-  
+
 -- | Player fired a projectile
 projectileFiredByPlayer :: GameState -> GameState
 projectileFiredByPlayer game = 
@@ -452,7 +451,7 @@ projectileFiredByPlayer game =
     py' = py + shipSizeHt
     animation :: SpriteAnimation
     animation = makeRepeatingAnimation projectileSpriteChangeInterval ((sProjectileSprites (sprites game))!!0)
-    
+
 -- | Enemies fired projectiles
 projectilesFiredByEnemies :: GameState -> GameState
 projectilesFiredByEnemies game =
@@ -474,7 +473,7 @@ makeEnemyProjectile sprites enemy = (Projectile (px,py) (sx,sy) animation)
   (sx,sy) = (0,-projectileSpeed)
   animation :: SpriteAnimation
   animation = makeRepeatingAnimation projectileSpriteChangeInterval sprites
-  
+
 -- | Deletes all out of bounds projectiles from game
 deleteProjectilesFormGame :: GameState -> GameState
 deleteProjectilesFormGame game =
@@ -487,7 +486,7 @@ deleteAsteroidsFromGame :: GameState -> GameState
 deleteAsteroidsFromGame game =
     game { obstaclesAsteroids = 
              deleteOutOfBoundsAsteroids (obstaclesAsteroids game) }
-         
+
 -- | Delete all out of bounds enemies from game
 deleteEnemiesFromGame :: GameState -> GameState
 deleteEnemiesFromGame game =
@@ -506,7 +505,7 @@ updateGameOverScreen game@(GameOver keysPressed _ _) =
   if (member (Char 'r') keysPressed)
   then initialState 
   else game
-  
+
 -- | Handle user input on Game screen
 handleInputGameScreen :: GameState -> GameState
 handleInputGameScreen game = 
@@ -517,7 +516,7 @@ handleInputGameScreen game =
     else if (member (Char 'r') (keysPressed game))
     then initialState
     else game
-         
+
 -- | Update the game
 update :: Float -> GameState -> GameState 
 update _ game@(WelcomeScreen _ _) = updateWelcomeScreen game
@@ -528,27 +527,25 @@ update seconds game = if (pHealth (player game)) <= 0
                       then 
                         handleInputGameScreen . --must be last
                         addEnemiesToGame seconds .
+                        addAsteroidsToGame seconds .
                         projectilesFiredByEnemies .
                         projectileFiredByPlayer .
-                        updateEnemyProjectilesInGame seconds .
-                        updatePlayerProjectilesInGame seconds . 
-                        deleteProjectilesFormGame .
-                        updateAsteroidsInGame seconds .
-                        addAsteroidsToGame seconds .
-                        deleteAsteroidsFromGame .
                         handlePlayerProjectilesCollision .
                         handleEnemiesProjectilesCollision .
                         handlePlayerAsteroidsCollision .
                         handleProjectilesAsteroidsCollision .
                         deleteEnemiesFromGame .
+                        deleteProjectilesFormGame .
+                        deleteAsteroidsFromGame .
+                        updateEnemyProjectilesInGame seconds .
+                        updatePlayerProjectilesInGame seconds . 
+                        updateAsteroidsInGame seconds .
                         updateEnemiesInGame seconds .
                         updatePlayerInGame seconds $ 
                         game
                       else 
                         handleInputGameScreen game
 
-  
-  
 
 -- INPUT FUNCTIONS --
 
@@ -565,7 +562,7 @@ handleKeys :: Event -> GameState -> GameState
 -- Remember all keys being pressed
 handleKeys (EventKey key Down _ _) game =
   game { keysPressed = insert key (keysPressed game) }
-  
+
 -- Forget all keys not pressed anymore
 handleKeys (EventKey key Up _ _) game =
   game { keysPressed = delete key (keysPressed game) }
