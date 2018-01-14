@@ -214,32 +214,15 @@ render game =
 
 -- UPDATE FUNCTIONS -- TODO: Combine all into one update function
 
--- | Calls updatePlayer for Game
-updatePlayerInGame :: Float -> GameState -> GameState
-updatePlayerInGame seconds game =
-  game { player = updatePlayer (keysPressed game) seconds (player game) }
-
--- | Update all projectiles fired by player for Game
-updatePlayerProjectilesInGame :: Float -> GameState -> GameState
-updatePlayerProjectilesInGame seconds game = 
-  game { playerProjectiles = 
-           map (updateProjectile seconds) (playerProjectiles game) }
-
--- | Update all projectiles fired by enemies for Game
-updateEnemyProjectilesInGame :: Float -> GameState -> GameState
-updateEnemyProjectilesInGame seconds game = 
-  game { enemyProjectiles = 
-           map (updateProjectile seconds) (enemyProjectiles game) }
-
--- | Update all enemies in Game
-updateEnemiesInGame :: Float -> GameState -> GameState
-updateEnemiesInGame seconds game =
-  game { enemies = map (updateEnemy seconds) (enemies game) }
-
--- | Update asteroids
-updateAsteroidsInGame :: Float -> GameState -> GameState
-updateAsteroidsInGame seconds game = 
-        game { obstaclesAsteroids = Prelude.map (updateAsteroid seconds) (obstaclesAsteroids game) }
+-- | Update all game objects in GameState
+updateObjectsInGame :: Float -> GameState -> GameState
+updateObjectsInGame seconds game =
+  game { player = updatePlayer (keysPressed game) seconds (player game)
+       , enemies = map (updateEnemy seconds) (enemies game)
+       , obstaclesAsteroids = map (updateAsteroid seconds) (obstaclesAsteroids game)
+       , playerProjectiles = map (updateProjectile seconds) (playerProjectiles game)
+       , enemyProjectiles = map (updateProjectile seconds) (enemyProjectiles game)
+       }
 
 -- | Collision between asteroids and projectiles
 handleProjectilesAsteroidsCollision :: GameState -> GameState
@@ -474,23 +457,15 @@ makeEnemyProjectile sprites enemy = (Projectile (px,py) (sx,sy) animation)
   animation :: SpriteAnimation
   animation = makeRepeatingAnimation projectileSpriteChangeInterval sprites
 
--- | Deletes all out of bounds projectiles from game
-deleteProjectilesFormGame :: GameState -> GameState
-deleteProjectilesFormGame game =
-  game { playerProjectiles = deleteOutOfBoundsProjectiles (playerProjectiles game) 
+
+-- | Delete all game objects out of bounds from game
+deleteObjectsFromGame :: GameState -> GameState
+deleteObjectsFromGame game = 
+  game { enemies = deleteOutOfBoundsEnemies (enemies game)
+       , obstaclesAsteroids = deleteOutOfBoundsAsteroids (obstaclesAsteroids game)
+       , playerProjectiles = deleteOutOfBoundsProjectiles (playerProjectiles game) 
        , enemyProjectiles = deleteOutOfBoundsProjectiles (enemyProjectiles game)
        }
-
--- | Deletes all out of bounds asteroids from game
-deleteAsteroidsFromGame :: GameState -> GameState
-deleteAsteroidsFromGame game =
-    game { obstaclesAsteroids = 
-             deleteOutOfBoundsAsteroids (obstaclesAsteroids game) }
-
--- | Delete all out of bounds enemies from game
-deleteEnemiesFromGame :: GameState -> GameState
-deleteEnemiesFromGame game =
-  game { enemies = deleteOutOfBoundsEnemies (enemies game) }
 
 -- | Handle user input on WelcomeScreen
 updateWelcomeScreen :: GameState -> GameState
@@ -534,14 +509,8 @@ update seconds game = if (pHealth (player game)) <= 0
                         handleEnemiesProjectilesCollision .
                         handlePlayerAsteroidsCollision .
                         handleProjectilesAsteroidsCollision .
-                        deleteEnemiesFromGame .
-                        deleteProjectilesFormGame .
-                        deleteAsteroidsFromGame .
-                        updateEnemyProjectilesInGame seconds .
-                        updatePlayerProjectilesInGame seconds . 
-                        updateAsteroidsInGame seconds .
-                        updateEnemiesInGame seconds .
-                        updatePlayerInGame seconds $ 
+                        deleteObjectsFromGame .
+                        updateObjectsInGame seconds $ 
                         game
                       else 
                         handleInputGameScreen game
@@ -551,13 +520,6 @@ update seconds game = if (pHealth (player game)) <= 0
 
 -- | Respond to key events.
 handleKeys :: Event -> GameState -> GameState
-
--- For an 'k' keypress, kill the player (for testing)
---handleKeys (EventKey (Char 'k') Down _ _) game =  -- force kill (testing only)
---  game { player = damagePlayer 100 (player game) }
-
--- Ignore 'k' keypress release
---handleKeys (EventKey (Char 'k') Up _ _) game = game
 
 -- Remember all keys being pressed
 handleKeys (EventKey key Down _ _) game =
