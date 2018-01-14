@@ -1,9 +1,7 @@
 module Asteroid
   ( Asteroid (Asteroid)
   , drawAsteroid
-  , makeAsteroidPicture
   , updateAsteroid
-  , addAsteroid
   , asteroidInBounds
   , deleteOutOfBoundsAsteroids
   , aPosition
@@ -16,7 +14,6 @@ import Graphics.Gloss
 import Data.Function (on)
 
 (/.) = (/) `on` fromIntegral -- divides two Integrals as Floats
-
 
 -- | Data describing all properties of a asteroid
 data Asteroid = Asteroid 
@@ -44,9 +41,6 @@ drawAsteroid asteroid =
        (rx,ry) = aPosition asteroid
        deg = aDegree asteroid
        --path = aPath asteroid
-       
-makeAsteroidPicture :: FilePath -> Picture
-makeAsteroidPicture path = png path
   
 -- | Update Asteroid
 updateAsteroid :: Float -> Asteroid -> Asteroid
@@ -60,10 +54,6 @@ updateAsteroid seconds asteroid =
       nx' = nx + seconds * sx'
       ny' = ny + seconds * sy
       nd= (aDegree asteroid) + 1
-  
--- | Adds new asteroid 
-addAsteroid :: (Float,Float) ->  Float -> (Float,Float) -> Float -> FilePath ->[Asteroid] -> [Asteroid]
-addAsteroid (px,py) w (sx,sy) deg path asteroids = (Asteroid (px,py) w (sx,sy) deg (makeAsteroidPicture path)) : asteroids
 
 -- | Checks if a asteroid has exited the screen
 asteroidInBounds :: Asteroid -> Bool

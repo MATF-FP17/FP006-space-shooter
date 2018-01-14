@@ -1,8 +1,6 @@
 module SpriteCache
   ( SpriteCache (SpriteCache)
   , loadAllSprites
-  , loadSpaceshipSprites
-  , loadSpriteFont
   , sProjectileSprites
   , sSpaceshipSprites
   , sEnemySprites
