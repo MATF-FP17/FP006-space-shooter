@@ -5,6 +5,7 @@ module Game
 import Constants
 import GameState 
 import GameDraw
+import GameCollision
 
 import SpriteCache
 import Player
@@ -36,7 +37,7 @@ render (WelcomeScreen _ sprites) = drawWelcomeScreen (sSpriteFont sprites)
 render (GameOver _ sprites score) = drawGameOverScreen (sSpriteFont sprites) score
 render game = drawGameScreen game
 
--- UPDATE FUNCTIONS -- TODO: Combine all into one update function
+-- UPDATE FUNCTIONS
 
 -- | Update all game objects in GameState
 updateObjectsInGame :: Float -> GameState -> GameState
@@ -47,102 +48,6 @@ updateObjectsInGame seconds game =
        , playerProjectiles = map (updateProjectile seconds) (playerProjectiles game)
        , enemyProjectiles = map (updateProjectile seconds) (enemyProjectiles game)
        }
-
--- | Collision between asteroids and projectiles
-handleProjectilesAsteroidsCollision :: GameState -> GameState
-handleProjectilesAsteroidsCollision game =
-        game { obstaclesAsteroids = smallerAsteroidsFromBigger ++  Prelude.map (\x-> snd x) remaindRegularAsteroids 
-             , playerProjectiles = Prelude.map (\x-> snd x) remaindProjectiles
-             , player = addScoreToPlayer score (player game)
-             }
-        where
-        asteroids = zip [1..] $ obstaclesAsteroids game
-        projectiles =zip [1..] $ playerProjectiles game 
-        asteroidProjectilesList = [(a,p) | a <- asteroids, p <- projectiles]
-        asteroidProjectilesListFiltered = Prelude.filter (\x -> checkForAsteoridProjectileCollision  (snd ( fst x)) (snd ( snd x))) asteroidProjectilesList
-        asteroidIndicesForRemove = returnAsteroidIndices asteroidProjectilesList asteroidProjectilesListFiltered
-        projectileIndicesForRemove = returnProjectileIndices asteroidProjectilesList asteroidProjectilesListFiltered
-        remaindRegularAsteroids = Prelude.filter (\x->  (elem (fst x) asteroidIndicesForRemove) == False) asteroids
-        bigAsteroidsForRemoveIndices = Prelude.filter (\x->  (elem (fst x) asteroidIndicesForRemove) == True && aWidth (snd x) == widthAsteroidBig) asteroids
-        bigAsteroidsForRemove = Prelude.map (\x -> (snd x)) bigAsteroidsForRemoveIndices
-        gen = generator game
-        (speedX1, gen') = randomR (lowestAsteroidSpeedX, highestAsteroidSpeedX) gen ::(Float, StdGen)
-        (speedY1, gen'') = randomR (lowestAsteroidSpeedY,highestAsteroidSpeedY) gen' ::(Float, StdGen)
-        (speedX2, gen''') = randomR (lowestAsteroidSpeedX, highestAsteroidSpeedX) gen'' ::(Float, StdGen)
-        (speedY2, gen'''') = randomR (lowestAsteroidSpeedY,highestAsteroidSpeedY) gen''' ::(Float, StdGen)
-        (deg, gen''''') = randomR (15,30) gen'''' ::(Float, StdGen)
-        smallerAsteroidsFromBigger = Prelude.foldl (\acc x ->  (Asteroid (aPosition x) widthAsteroidSmall (speedX1,speedY1) deg (sAsteroidSpriteSmall (sprites game))) : (Asteroid (aPosition x) widthAsteroidSmall ((-speedX1),speedY2) deg (sAsteroidSpriteSmall (sprites game))) : acc) [] bigAsteroidsForRemove
-        remaindProjectiles = Prelude.filter (\x-> (elem (fst x) projectileIndicesForRemove) == False) projectiles
-        score = length asteroidIndicesForRemove * asteroidDestructionScore
-
-
-
-checkForAsteoridProjectileCollision :: Asteroid -> Projectile -> Bool
-checkForAsteoridProjectileCollision asteroid projectile = centerDistance > radiusSum
-        where
-        (ax, ay) = aPosition asteroid
-        aw = aWidth asteroid / 2 --asteroid radius
-        (px, py) = rPosition projectile
-        pw = projectileRadius
-        centerDistance = (ax-px)^2 + (ay-py)^2
-        radiusSum = (aw + pw)^2
-
-returnAsteroidIndices :: [((Int , Asteroid),(Int, Projectile))] -> [((Int , Asteroid),(Int, Projectile))]->[Int]
-returnAsteroidIndices  unfilteredList filteredList = asteroidIndices
-        where 
-        asteroidsForRemoving = Prelude.filter (\x-> (elem x filteredList) == False) unfilteredList
-        asteroidIndices = Prelude.foldl (\acc x -> (fst ( fst x)) : acc) [] asteroidsForRemoving
-
-returnProjectileIndices :: [((Int , Asteroid),(Int, Projectile))] -> [((Int , Asteroid),(Int, Projectile))]->[Int]
-returnProjectileIndices  unfilteredList filteredList = projectileIndices
-        where 
-        projectilesForRemoving = Prelude.filter (\x-> (elem x filteredList) == False) unfilteredList
-        projectileIndices = Prelude.foldl (\acc x -> (fst (snd x)) : acc) [] projectilesForRemoving
-
-
--- | Checks if there is collision between given circle and rectangle
--- Arguments: Circle center -> Circle radius -> Rectangle center -> Rectangle
--- width and height
-circleRectangleCollision :: (Float,Float) -> (Float) -> (Float, Float) -> (Float,Float) -> Bool
-circleRectangleCollision (cx,cy) cr (rx,ry) (rw,rh) =
-  if (distanceX > (rw2+cr)) then False
-  else if (distanceY > (rh2+cr)) then False
-  else if (distanceX <= rw2) then True
-  else if (distanceY <= rh2) then True
-  else ( (square(distanceX-rw2) + square(distanceY-rh2)) <= (square cr) )
-  where 
-    rw2 = rw / 2.0
-    rh2 = rh / 2.0
-    distanceX = abs (cx-rx)
-    distanceY = abs (cy-ry)
-    square :: Float -> Float
-    square x = x * x
-
--- | Collision between asteroids and player
-handlePlayerAsteroidsCollision :: GameState -> GameState
-handlePlayerAsteroidsCollision game =
-  game { player = damagePlayer totalDamage (player game) 
-       , obstaclesAsteroids = notCollidedAsteroids
-       }
-  where
-  asteroids = obstaclesAsteroids game
-  notCollidedAsteroids = filter (not . (checkForPlayerAsteroidCollision (player game)) ) asteroids  
-  totalDamage = ((length asteroids) - (length notCollidedAsteroids)) * asteroidDamageToPlayer
-
--- | Checks if there is collision between a single asteroid and player
--- Asteroid is treated as a circle and Player is treated as a rectangle
-checkForPlayerAsteroidCollision :: PlayerState -> Asteroid -> Bool
-checkForPlayerAsteroidCollision player asteroid = 
-  circleRectangleCollision (ax,ay) ar (px,py) (pw,ph)
-  where
-    (ax, ay) = aPosition asteroid -- asteroid center
-    ar = aWidth asteroid / 2 - spriteCorrection -- asteroid (circle) radius
-    (px, py') = pPosition player
-    py = (shipSizeHt - shipSizeHb) / 2 + py' -- actual center of spaceship rectangle
-    pw = shipSizeWh * 2  -- spaceship's width
-    ph = (shipSizeHt + shipSizeHb) -- spaceship's height
-    spriteCorrection = 5 -- wiggle room for sprites not being perfect circle and rectangle
-
 
 -- | Add asteroids to the game
 addAsteroidsToGame :: Float -> GameState -> GameState
@@ -182,64 +87,6 @@ addEnemiesToGame seconds game =
     sx = 0
     (sy,gen'') = randomR (-75,-25) gen' :: (Float, StdGen)
 
-
--- | Collision between enemies and projectiles
-handleEnemiesProjectilesCollision :: GameState -> GameState
-handleEnemiesProjectilesCollision game =
-  game { enemies = map snd remainingEnemies
-       , playerProjectiles = map snd remainingProjectiles
-       , player = addScoreToPlayer score (player game)
-       }
-  where
-    indexedEnemies = zip [1..] (enemies game)
-    indexedProjectiles = zip [1..] (playerProjectiles game)
-    pairsEnemiesProjectiles = [(e,p) | e <- indexedEnemies, p <- indexedProjectiles]
-    collidedPairs = filter (\x -> checkForEnemiesProjectilesCollision (snd(fst x)) (snd (snd x))) pairsEnemiesProjectiles
-    collidedEnemies = map fst collidedPairs
-    collidedProjectiles = map snd collidedPairs 
-    remainingEnemies = deleteFirstsBy sameIndex indexedEnemies collidedEnemies
-    remainingProjectiles = deleteFirstsBy sameIndex indexedProjectiles collidedProjectiles
-    score = ((length indexedEnemies) - (length remainingEnemies)) * enemyDestructionScore
-    sameIndex :: (Int,a) -> (Int,a) -> Bool
-    sameIndex (i1,_) (i2,_) = (i1==i2)
-
-
--- | Checks if there is collision between an enemy and a projectile
--- Projectile is treated as a circle and Enemy is treated as a rectangle
-checkForEnemiesProjectilesCollision :: Enemy -> Projectile -> Bool
-checkForEnemiesProjectilesCollision enemy projectile = 
-  circleRectangleCollision (px,py) pr (ex,ey) (ew,eh)
-  where
-    (px,py) = rPosition projectile
-    pr = projectileRadius
-    (ex,ey) = ePosition enemy
-    (ew,eh) = (enemySizeW - spriteCorrection, enemySizeH - spriteCorrection)
-    spriteCorrection = 5 -- wiggle room for sprites not being perfect circle and rectangle
-
--- | Collision between player and enemy projectiles
-handlePlayerProjectilesCollision :: GameState -> GameState
-handlePlayerProjectilesCollision game = 
-  game { player = damagePlayer totalDamage (player game)
-       , enemyProjectiles = notCollidedProjectiles
-       }
-  where 
-    projectiles = enemyProjectiles game
-    notCollidedProjectiles = filter (not . (checkForPlayerProjectilesCollision (player game))) projectiles  
-    totalDamage = ((length projectiles) - (length notCollidedProjectiles)) * enemyProjectileDamageToPlayer
-
--- | Checks if there is collision between the player and a projectile
--- Projectile is treated as a circle and Player is treated as a rectangle
-checkForPlayerProjectilesCollision :: PlayerState -> Projectile -> Bool
-checkForPlayerProjectilesCollision player projectile = 
-  circleRectangleCollision (rx,ry) rr (px,py) (pw,ph)
-  where
-    (rx,ry) = rPosition projectile
-    rr = projectileRadius
-    (px, py') = pPosition player
-    py = (shipSizeHt - shipSizeHb) / 2 + py' -- actual center of spaceship rectangle
-    pw = shipSizeWh * 2 - spriteCorrection  -- spaceship's width
-    ph = (shipSizeHt + shipSizeHb) - (spriteCorrection * 2) -- spaceship's height
-    spriteCorrection = 5 -- wiggle room for sprites not being perfect circle and rectangle    
 
 -- | Player fired a projectile
 projectileFiredByPlayer :: GameState -> GameState

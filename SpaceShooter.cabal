@@ -38,6 +38,7 @@ library
       Constants
       Enemy
       Game
+      GameCollision
       GameDraw
       GameState
       Player
