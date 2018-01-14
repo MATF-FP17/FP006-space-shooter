@@ -21,28 +21,28 @@ import System.Random (StdGen, randomR)
 -- | Collision between asteroids and projectiles
 handleProjectilesAsteroidsCollision :: GameState -> GameState
 handleProjectilesAsteroidsCollision game =
-        game { obstaclesAsteroids = smallerAsteroidsFromBigger ++  Prelude.map (\x-> snd x) remaindRegularAsteroids 
-             , playerProjectiles = Prelude.map (\x-> snd x) remaindProjectiles
+        game { obstaclesAsteroids = smallerAsteroidsFromBigger ++  map (\x-> snd x) remaindRegularAsteroids 
+             , playerProjectiles = map (\x-> snd x) remaindProjectiles
              , player = addScoreToPlayer score (player game)
              }
         where
         asteroids = zip [1..] $ obstaclesAsteroids game
         projectiles =zip [1..] $ playerProjectiles game 
         asteroidProjectilesList = [(a,p) | a <- asteroids, p <- projectiles]
-        asteroidProjectilesListFiltered = Prelude.filter (\x -> checkForAsteoridProjectileCollision  (snd ( fst x)) (snd ( snd x))) asteroidProjectilesList
+        asteroidProjectilesListFiltered = filter (\x -> checkForAsteoridProjectileCollision  (snd ( fst x)) (snd ( snd x))) asteroidProjectilesList
         asteroidIndicesForRemove = returnAsteroidIndices asteroidProjectilesList asteroidProjectilesListFiltered
         projectileIndicesForRemove = returnProjectileIndices asteroidProjectilesList asteroidProjectilesListFiltered
-        remaindRegularAsteroids = Prelude.filter (\x->  (elem (fst x) asteroidIndicesForRemove) == False) asteroids
-        bigAsteroidsForRemoveIndices = Prelude.filter (\x->  (elem (fst x) asteroidIndicesForRemove) == True && aWidth (snd x) == widthAsteroidBig) asteroids
-        bigAsteroidsForRemove = Prelude.map (\x -> (snd x)) bigAsteroidsForRemoveIndices
+        remaindRegularAsteroids = filter (\x->  (elem (fst x) asteroidIndicesForRemove) == False) asteroids
+        bigAsteroidsForRemoveIndices = filter (\x->  (elem (fst x) asteroidIndicesForRemove) == True && aWidth (snd x) == widthAsteroidBig) asteroids
+        bigAsteroidsForRemove = map (\x -> (snd x)) bigAsteroidsForRemoveIndices
         gen = generator game
         (speedX1, gen') = randomR (lowestAsteroidSpeedX, highestAsteroidSpeedX) gen ::(Float, StdGen)
         (speedY1, gen'') = randomR (lowestAsteroidSpeedY,highestAsteroidSpeedY) gen' ::(Float, StdGen)
         (speedX2, gen''') = randomR (lowestAsteroidSpeedX, highestAsteroidSpeedX) gen'' ::(Float, StdGen)
         (speedY2, gen'''') = randomR (lowestAsteroidSpeedY,highestAsteroidSpeedY) gen''' ::(Float, StdGen)
         (deg, gen''''') = randomR (15,30) gen'''' ::(Float, StdGen)
-        smallerAsteroidsFromBigger = Prelude.foldl (\acc x ->  (Asteroid (aPosition x) widthAsteroidSmall (speedX1,speedY1) deg (sAsteroidSpriteSmall (sprites game))) : (Asteroid (aPosition x) widthAsteroidSmall ((-speedX1),speedY2) deg (sAsteroidSpriteSmall (sprites game))) : acc) [] bigAsteroidsForRemove
-        remaindProjectiles = Prelude.filter (\x-> (elem (fst x) projectileIndicesForRemove) == False) projectiles
+        smallerAsteroidsFromBigger = foldl (\acc x ->  (Asteroid (aPosition x) widthAsteroidSmall (speedX1,speedY1) deg (sAsteroidSpriteSmall (sprites game))) : (Asteroid (aPosition x) widthAsteroidSmall ((-speedX1),speedY2) deg (sAsteroidSpriteSmall (sprites game))) : acc) [] bigAsteroidsForRemove
+        remaindProjectiles = filter (\x-> (elem (fst x) projectileIndicesForRemove) == False) projectiles
         score = length asteroidIndicesForRemove * asteroidDestructionScore
 
 
@@ -59,14 +59,14 @@ checkForAsteoridProjectileCollision asteroid projectile = centerDistance > radiu
 returnAsteroidIndices :: [((Int , Asteroid),(Int, Projectile))] -> [((Int , Asteroid),(Int, Projectile))]->[Int]
 returnAsteroidIndices  unfilteredList filteredList = asteroidIndices
         where 
-        asteroidsForRemoving = Prelude.filter (\x-> (elem x filteredList) == False) unfilteredList
-        asteroidIndices = Prelude.foldl (\acc x -> (fst ( fst x)) : acc) [] asteroidsForRemoving
+        asteroidsForRemoving = filter (\x-> (elem x filteredList) == False) unfilteredList
+        asteroidIndices = foldl (\acc x -> (fst ( fst x)) : acc) [] asteroidsForRemoving
 
 returnProjectileIndices :: [((Int , Asteroid),(Int, Projectile))] -> [((Int , Asteroid),(Int, Projectile))]->[Int]
 returnProjectileIndices  unfilteredList filteredList = projectileIndices
         where 
-        projectilesForRemoving = Prelude.filter (\x-> (elem x filteredList) == False) unfilteredList
-        projectileIndices = Prelude.foldl (\acc x -> (fst (snd x)) : acc) [] projectilesForRemoving
+        projectilesForRemoving = filter (\x-> (elem x filteredList) == False) unfilteredList
+        projectileIndices = foldl (\acc x -> (fst (snd x)) : acc) [] projectilesForRemoving
 
 
 -- | Checks if there is collision between given circle and rectangle

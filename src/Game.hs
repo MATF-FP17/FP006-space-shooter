@@ -6,21 +6,17 @@ import Constants
 import GameState 
 import GameDraw
 import GameCollision
-
-import SpriteCache
-import Player
-import Asteroid
-import Projectile
-import Enemy
-import SpriteAnimation
-import SpriteText
+import SpriteCache (sProjectileSprites, sEnemySprites, sAsteroidSpriteSmall, sAsteroidSpriteBig, sSpriteFont)
+import Player (PlayerState, updatePlayer, canPlayerFireProjectile, reloadPlayer, pScore, pPosition, pHealth)
+import Asteroid (Asteroid(Asteroid), updateAsteroid, deleteOutOfBoundsAsteroids)
+import Projectile (Projectile(Projectile), updateProjectile, deleteOutOfBoundsProjectiles, addProjectile)
+import Enemy (Enemy(Enemy), updateEnemy,canEnemyFireProjectile, deleteOutOfBoundsEnemies, reloadEnemy, ePosition)
+import SpriteAnimation (SpriteAnimation, makeRepeatingAnimation)
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
-import Data.Set (Set, empty, insert, delete, member)
-import Data.Map.Strict (Map)
-import Data.List ((\\), deleteFirstsBy)
+import Data.Set (insert, delete, member)
 import Data.Function (on)
-import System.Random (StdGen, mkStdGen, randomR)
+import System.Random (StdGen, randomR)
 
 (/.) = (/) `on` fromIntegral -- divides two Integrals as Floats
 
@@ -48,6 +44,16 @@ updateObjectsInGame seconds game =
        , playerProjectiles = map (updateProjectile seconds) (playerProjectiles game)
        , enemyProjectiles = map (updateProjectile seconds) (enemyProjectiles game)
        }
+
+-- | Delete all game objects out of bounds from game
+deleteObjectsFromGame :: GameState -> GameState
+deleteObjectsFromGame game = 
+  game { enemies = deleteOutOfBoundsEnemies (enemies game)
+       , obstaclesAsteroids = deleteOutOfBoundsAsteroids (obstaclesAsteroids game)
+       , playerProjectiles = deleteOutOfBoundsProjectiles (playerProjectiles game) 
+       , enemyProjectiles = deleteOutOfBoundsProjectiles (enemyProjectiles game)
+       }
+
 
 -- | Add asteroids to the game
 addAsteroidsToGame :: Float -> GameState -> GameState
@@ -128,15 +134,6 @@ makeEnemyProjectile sprites enemy = (Projectile (px,py) (sx,sy) animation)
   animation :: SpriteAnimation
   animation = makeRepeatingAnimation projectileSpriteChangeInterval sprites
 
-
--- | Delete all game objects out of bounds from game
-deleteObjectsFromGame :: GameState -> GameState
-deleteObjectsFromGame game = 
-  game { enemies = deleteOutOfBoundsEnemies (enemies game)
-       , obstaclesAsteroids = deleteOutOfBoundsAsteroids (obstaclesAsteroids game)
-       , playerProjectiles = deleteOutOfBoundsProjectiles (playerProjectiles game) 
-       , enemyProjectiles = deleteOutOfBoundsProjectiles (enemyProjectiles game)
-       }
 
 -- | Handle user input on WelcomeScreen
 updateWelcomeScreen :: GameState -> GameState
