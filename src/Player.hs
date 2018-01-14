@@ -1,5 +1,6 @@
 module Player
-  ( PlayerState (Player) 
+  ( Player (Player) 
+  , initialPlayerState
   , drawSpaceShip
   , drawReloadBar
   , updatePlayer
@@ -58,7 +59,7 @@ data Movement = Movement
   } deriving Show
   
 -- | Data describing all properties of a player
-data PlayerState = Player
+data Player = Player
   { pPosition :: (Float, Float) -- player coordinates
   , pSpeed :: Float             -- player movement speed
   , pHealth :: Int              -- player's health (spaceship's hull integrity)
@@ -68,7 +69,10 @@ data PlayerState = Player
   , pMovement :: Movement       -- direction of last movement
   } deriving Show
   
-debugPlayerPosition :: PlayerState -> String
+initialPlayerState :: [Picture] -> Player
+initialPlayerState sprites = Player (0,(-150)) 100 100 0 0 sprites noMovement
+  
+debugPlayerPosition :: Player -> String
 debugPlayerPosition player = 
   "position (" ++ 
     (showFFloat (Just 2) px "") ++ 
@@ -78,16 +82,16 @@ debugPlayerPosition player =
   where 
     (px,py) = pPosition player
 
-debugPlayerSpeed :: PlayerState -> String
+debugPlayerSpeed :: Player -> String
 debugPlayerSpeed player = "speed: " ++ show (pSpeed player)
 
-debugPlayerReloadTime :: PlayerState -> String
+debugPlayerReloadTime :: Player -> String
 debugPlayerReloadTime player = 
   "reload time: " ++
     (showFFloat (Just 4) (pInReload player) "") 
 
 -- | Produces a Picture of a Player
-drawSpaceShip :: PlayerState -> Picture
+drawSpaceShip :: Player -> Picture
 drawSpaceShip player = 
   translate px py $
     Scale (w/wo) ((hb+ht+hbt)/ho) $ 
@@ -105,7 +109,7 @@ drawSpaceShip player =
     
 -- | Draws a reload bar below the player giving visual representation of how much
 -- time left there is until another projectile can be fired
-drawReloadBar :: PlayerState -> Picture
+drawReloadBar :: Player -> Picture
 drawReloadBar player = 
   translate px py $
     translate 0 (-shipSizeHb - shipSizeHbTail - barDistance) $
@@ -120,15 +124,15 @@ drawReloadBar player =
     percentage = (pInReload player) / (playerReloadTime)
 
 -- | Checks if the player is not reloading at the current time
-canPlayerFireProjectile :: PlayerState -> Bool
+canPlayerFireProjectile :: Player -> Bool
 canPlayerFireProjectile player = (pInReload player <= 0)
   
 -- | Resets reload timer. Called after a projectile is fired
-reloadPlayer :: PlayerState -> PlayerState
+reloadPlayer :: Player -> Player
 reloadPlayer player = player { pInReload = playerReloadTime }
 
 -- | Update the player
-updatePlayer :: Set Key -> Float -> PlayerState -> PlayerState
+updatePlayer :: Set Key -> Float -> Player -> Player
 updatePlayer keysPressed seconds player =
   player { pPosition = (nx', ny'), pInReload = nReload,
            pMovement = Movement nH' nV'
@@ -186,10 +190,10 @@ updatePlayer keysPressed seconds player =
         then DownV
         else NoV
 
-damagePlayer :: Int -> PlayerState -> PlayerState
+damagePlayer :: Int -> Player -> Player
 damagePlayer damage player = player { pHealth = (pHealth player) - damage }
 
-addScoreToPlayer :: Int -> PlayerState -> PlayerState
+addScoreToPlayer :: Int -> Player -> Player
 addScoreToPlayer score player = player { pScore = (pScore player) + score }
         
 -- | Initial state of data Movement

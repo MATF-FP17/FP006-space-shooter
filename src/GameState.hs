@@ -2,7 +2,7 @@ module GameState where
 
 import Constants
 import SpriteCache (SpriteCache, loadAllSprites, sSpaceshipSprites)
-import Player (PlayerState(Player), noMovement)
+import Player (Player, initialPlayerState)
 import Asteroid (Asteroid)
 import Projectile (Projectile)
 import Enemy (Enemy)
@@ -12,7 +12,7 @@ import System.Random (StdGen, mkStdGen)
 
 -- | Data describing the state of the game. 
 data GameState = Game                 -- Game in progress
-  { player :: PlayerState             -- state of the player
+  { player :: Player                  -- state of the player
   , enemies :: [Enemy]                -- list of enemies
   , obstaclesAsteroids :: [Asteroid]  -- list of obstcales
   , playerProjectiles :: [Projectile] -- list of projectiles fired by the player
@@ -43,7 +43,7 @@ initialState = WelcomeScreen
 -- | Transfering loaded sprites into GameState
 initialLoadedGameState :: SpriteCache -> GameState
 initialLoadedGameState loadedSprites = Game  
-  { player = Player (0,(-150)) 100 100 0 0 (sSpaceshipSprites loadedSprites) noMovement
+  { player = initialPlayerState (sSpaceshipSprites loadedSprites)
   , enemies = []
   , obstaclesAsteroids = []
   , playerProjectiles = []

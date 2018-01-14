@@ -7,7 +7,7 @@ import GameState
 import GameDraw
 import GameCollision
 import SpriteCache (sProjectileSprites, sEnemySprites, sAsteroidSpriteSmall, sAsteroidSpriteBig, sSpriteFont)
-import Player (PlayerState, updatePlayer, canPlayerFireProjectile, reloadPlayer, pScore, pPosition, pHealth)
+import Player (Player, updatePlayer, canPlayerFireProjectile, reloadPlayer, pScore, pPosition, pHealth)
 import Asteroid (Asteroid(Asteroid), updateAsteroid, deleteOutOfBoundsAsteroids)
 import Projectile (Projectile(Projectile), updateProjectile, deleteOutOfBoundsProjectiles, addProjectile)
 import Enemy (Enemy(Enemy), updateEnemy,canEnemyFireProjectile, deleteOutOfBoundsEnemies, reloadEnemy, ePosition)

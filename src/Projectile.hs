@@ -18,9 +18,9 @@ import SpriteAnimation
 
 -- | Data describing all properties of a projectile
 data Projectile = Projectile
-  { rPosition :: (Float, Float) -- projectile coordinates
-  , rSpeed :: (Float, Float)    -- speed vector
-  , rAnimation :: SpriteAnimation 
+  { rPosition :: (Float, Float)   -- projectile coordinates
+  , rSpeed :: (Float, Float)      -- speed vector
+  , rAnimation :: SpriteAnimation -- animation of a projectile
   } deriving (Show)
 
 -- | Equality only checks if the coordinates (rPosition) is the same
@@ -34,9 +34,6 @@ drawProjectile :: Projectile -> Picture
 drawProjectile projectile =
   translate rx ry $
     drawAnimation (rAnimation projectile)
-    --(rSprites projectile)!!(rSpriteState projectile)
-    --color yellow $
-      --circle 4
     where
       (rx,ry) = rPosition projectile
 

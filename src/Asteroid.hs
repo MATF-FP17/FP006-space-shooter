@@ -21,7 +21,6 @@ data Asteroid = Asteroid
      , aWidth :: Float              -- asteroid width =32
      , aSpeed :: (Float, Float)     -- asteroid speed
      , aDegree :: Float             -- rotation degree
-     --, aPath   :: FilePath          -- image path that presents asteroid
      , aPicture :: Picture          -- picture object of the asteroid
      } deriving (Show)           
 
@@ -35,12 +34,10 @@ drawAsteroid :: Asteroid -> Picture
 drawAsteroid asteroid =
    translate rx ry $
    Rotate deg $
-  --png path
    aPicture asteroid
      where
        (rx,ry) = aPosition asteroid
        deg = aDegree asteroid
-       --path = aPath asteroid
   
 -- | Update Asteroid
 updateAsteroid :: Float -> Asteroid -> Asteroid

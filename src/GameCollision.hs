@@ -8,7 +8,7 @@ module GameCollision
 import Constants
 import GameState 
 import SpriteCache (sAsteroidSpriteSmall)
-import Player (PlayerState, pPosition, addScoreToPlayer, damagePlayer)
+import Player (Player, pPosition, addScoreToPlayer, damagePlayer)
 import Asteroid (Asteroid(Asteroid), aPosition, aWidth)
 import Projectile (Projectile, rPosition)
 import Enemy (Enemy, ePosition)
@@ -70,9 +70,11 @@ returnProjectileIndices  unfilteredList filteredList = projectileIndices
 
 
 -- | Checks if there is collision between given circle and rectangle
--- Arguments: Circle center -> Circle radius -> Rectangle center -> Rectangle
--- width and height
-circleRectangleCollision :: (Float,Float) -> (Float) -> (Float, Float) -> (Float,Float) -> Bool
+circleRectangleCollision :: (Float,Float) -- ^ Circle center
+                         -> (Float) -- ^ Circle radius
+                         -> (Float,Float) -- ^ Rectangle center
+                         -> (Float,Float) -- ^ Rectangle width and height
+                         -> Bool -- ^ Result
 circleRectangleCollision (cx,cy) cr (rx,ry) (rw,rh) =
   if (distanceX > (rw2+cr)) then False
   else if (distanceY > (rh2+cr)) then False
@@ -100,7 +102,7 @@ handlePlayerAsteroidsCollision game =
 
 -- | Checks if there is collision between a single asteroid and player
 -- Asteroid is treated as a circle and Player is treated as a rectangle
-checkForPlayerAsteroidCollision :: PlayerState -> Asteroid -> Bool
+checkForPlayerAsteroidCollision :: Player -> Asteroid -> Bool
 checkForPlayerAsteroidCollision player asteroid = 
   circleRectangleCollision (ax,ay) ar (px,py) (pw,ph)
   where
@@ -159,7 +161,7 @@ handlePlayerProjectilesCollision game =
 
 -- | Checks if there is collision between the player and a projectile
 -- Projectile is treated as a circle and Player is treated as a rectangle
-checkForPlayerProjectilesCollision :: PlayerState -> Projectile -> Bool
+checkForPlayerProjectilesCollision :: Player -> Projectile -> Bool
 checkForPlayerProjectilesCollision player projectile = 
   circleRectangleCollision (rx,ry) rr (px,py) (pw,ph)
   where
