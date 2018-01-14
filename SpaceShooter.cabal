@@ -38,6 +38,7 @@ library
       Constants
       Enemy
       Game
+      GameState
       Player
       Projectile
       SpriteAnimation
