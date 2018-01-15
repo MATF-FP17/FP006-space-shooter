@@ -54,6 +54,8 @@ enemySpawnTime = 2
 enemyReloadTime, enemyInitialReloadTime :: Float
 enemyReloadTime = 1.9
 enemyInitialReloadTime = 3
+spaceshipObject = [(-2,21.5),(-13,8.5),(-19,-3.5),(-19,-8.5),(19,-8.5),(19,-3.5),(13,8.5),(2,21.5)] :: [(Float,Float)]
+enemyObject = [(-13.5,10.5),(-13.5,7.5),(-10.5,-6.5),(-1.5,-14.5),(1.5,-14.5),(10.5,-6.5),(13.5,7.5),(13.5,10.5)] :: [(Float,Float)]
 
 -- | Images of objects.
 imageOfAsteroidSmall :: String
