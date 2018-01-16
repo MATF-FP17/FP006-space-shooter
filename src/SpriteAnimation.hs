@@ -13,7 +13,7 @@ import Graphics.Gloss (Picture(Blank))
 -- | Data describing type of animation. 
 -- Single animation displays all given sprites only once. After that it can 
 -- display only blank picture (Gloss.Picture (Blank))
--- Repeating animation display given sprites in an infinite loop
+-- Repeating animation displays given sprites in an infinite loop
 data AnimationType = Single    -- draw all sprites only once
                    | Repeating -- draw sprites in infinite loop
                      { aState :: Int          -- current sprite from loop

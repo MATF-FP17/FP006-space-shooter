@@ -42,13 +42,13 @@ library
       GameDraw
       GameState
       GameUpdate
+      HealthPackage
       ObjectCollision
       Player
       Projectile
       SpriteAnimation
       SpriteCache
       SpriteText
-      HealthPackage
   default-language: Haskell2010
 
 executable SpaceShooter

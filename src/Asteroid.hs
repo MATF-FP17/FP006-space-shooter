@@ -26,8 +26,8 @@ data Asteroid = Asteroid
 
 -- | Equality only checks coordinates, speed and rotation degree
 instance Eq Asteroid where
-  (Asteroid a1p _ a1s a1d _) == (Asteroid a2p _ a2s a2d _) = (a1p==a2p && a1s==a2s && a1d==a2d )
-  (Asteroid a1p _ a1s a1d _) /= (Asteroid a2p _ a2s a2d _) = (a1p/=a2p || a1s/=a2s || a1d/=a2d )
+  (Asteroid a1p a1w a1s a1d _) == (Asteroid a2p a2w a2s a2d _) = (a1p==a2p && a1w==a2w && a1s==a2s && a1d==a2d )
+  (Asteroid a1p a1w a1s a1d _) /= (Asteroid a2p a2w a2s a2d _) = (a1p/=a2p || a1w==a2w || a1s/=a2s || a1d/=a2d )
  
  -- | Produces a Picture of a given Asteroid
 drawAsteroid :: Asteroid -> Picture

@@ -13,8 +13,6 @@ import Graphics.Gloss.Interface.Pure.Game
 import Data.Set (insert, delete, member)
 import Data.Function (on)
 
-
-
 window :: Display
 window = InWindow "SpaceShooter" (width + iWidth, height) (offset, offset)
 
@@ -27,8 +25,6 @@ render :: GameState  -- ^ The game state to render.
 render (WelcomeScreen _ sprites) = drawWelcomeScreen (sSpriteFont sprites)
 render (GameOver _ sprites score) = drawGameOverScreen (sSpriteFont sprites) score
 render game = drawGameScreen game
-
-
 
 -- | Update the game
 update :: Float -> GameState -> GameState 
