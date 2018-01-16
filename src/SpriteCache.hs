@@ -1,5 +1,6 @@
 module SpriteCache
   ( SpriteCache (SpriteCache)
+  , Font
   , loadAllSprites
   , sProjectileSprites
   , sSpaceshipSprites
@@ -14,13 +15,15 @@ import Data.Map.Strict (Map, fromList)
 import Graphics.Gloss
 import Graphics.Gloss.Game
 
+type Font = Map Char Picture
+
 data SpriteCache = SpriteCache
   { sProjectileSprites :: [[Picture]]
   , sSpaceshipSprites :: [Picture]
   , sEnemySprites :: [Picture]
   , sAsteroidSpriteSmall :: Picture
   , sAsteroidSpriteBig :: Picture
-  , sSpriteFont :: Map Char Picture  
+  , sSpriteFont :: Font 
   } deriving (Show)
   
 loadAllSprites :: SpriteCache
@@ -79,7 +82,7 @@ loadAsteroidSpriteSmall = png imageOfAsteroidSmall
 loadAsteroidSpriteBig :: Picture
 loadAsteroidSpriteBig = png imageOfAsteroidBig
  
-loadSpriteFont :: Map Char Picture  
+loadSpriteFont :: Font 
 loadSpriteFont = fromList loadSpriteFont'
   
 loadSpriteFont' :: [(Char,Picture)]

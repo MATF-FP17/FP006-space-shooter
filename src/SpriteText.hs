@@ -8,9 +8,9 @@ import Data.Map.Strict (Map,(!))
 import Data.Char (toUpper)
 import Graphics.Gloss
 import Graphics.Gloss.Game
+import SpriteCache (Font) --type Font = Map Char Picture
 
-
-makeSpriteText :: [Char] -> (Map Char Picture) -> Picture
+makeSpriteText :: [Char] -> Font -> Picture
 makeSpriteText text font =
   translate halfLength halfLength $
     pictures $     
@@ -24,7 +24,7 @@ makeSpriteText text font =
     halfLength :: Float
     halfLength = fromIntegral imageSpriteFontSize / 2.0
   
-makeSpriteTextTight :: [Char] -> (Map Char Picture) -> Picture
+makeSpriteTextTight :: [Char] -> Font -> Picture
 makeSpriteTextTight text font =
   translate halfLength halfLength $
     pictures $     

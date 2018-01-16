@@ -156,6 +156,10 @@ handleInputGameScreen game =
     then game { paused = not (paused game) 
               , keysPressed = delete (Char 'p') (keysPressed game) 
               }
+    else if (member (Char 'o') (keysPressed game))
+    then game { showDebug = not (showDebug game) 
+              , keysPressed = delete (Char 'o') (keysPressed game) 
+              }
     else if (member (Char 'r') (keysPressed game))
     then initialState
     else game

@@ -20,6 +20,7 @@ data GameState = Game                 -- Game in progress
   , timeToAddNewEnemy :: Float        -- time left until a new enemy should be added
   , keysPressed :: Set Key            -- keeps track of all keys currently held down
   , paused :: Bool                    -- shows if the game is currently paused
+  , showDebug :: Bool                 -- if true debug info is shown on screen
   , generator :: StdGen               -- seed for random numbers
   , sprites :: SpriteCache            -- cache with all game spirtes
   }
@@ -51,6 +52,7 @@ initialLoadedGameState loadedSprites = Game
   , timeToAddNewEnemy = enemySpawnTime
   , keysPressed = empty
   , paused = False
+  , showDebug = False
   , generator = mkStdGen(23456)
   , sprites = loadedSprites
   }

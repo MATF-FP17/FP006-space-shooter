@@ -15,7 +15,7 @@ import Enemy (drawEnemy)
 import Asteroid (drawAsteroid)
 import Projectile (drawProjectile)
 import SpriteText (makeSpriteText, makeSpriteTextTight)
-import SpriteCache (sSpriteFont)
+import SpriteCache (Font,sSpriteFont)
 import Graphics.Gloss (Picture(..), translate, pictures, color, rectangleSolid)
 import Graphics.Gloss.Data.Color
 import Data.Map.Strict (Map)
@@ -33,8 +33,10 @@ drawGameScreen game =
       drawInfo (sSpriteFont (sprites game)) (pHealth (player game)) (pScore (player game))
   , translateToInfoSideBar 0 $ 
       drawControlsInfo (sSpriteFont (sprites game))
-  , translateToInfoSideBar (-height /. 2 ) $ 
-      drawDebugInfo game
+  , if (showDebug game) 
+    then translateToInfoSideBar (-height /. 2 ) $ 
+           drawDebugInfo game
+    else Blank
   , if (paused game) 
     then translate (iWidth /. 2) 0 $ 
            drawPauseScreen (sSpriteFont (sprites game)) 
@@ -78,7 +80,7 @@ drawGameScreen game =
     eProjectiles = pictures $ map drawProjectile (enemyProjectiles game)
 
 
-drawWelcomeScreen :: Map Char Picture -> Picture
+drawWelcomeScreen :: Font -> Picture
 drawWelcomeScreen spriteFont =
   pictures
   [ Scale 2 2 $ rowOrder (-2) $ centerText "SPACE SHOOTER" spriteFont
@@ -89,10 +91,10 @@ drawWelcomeScreen spriteFont =
     rowOrder number = translate 0 (fromIntegral (-imageSpriteFontSize) * number)
     center :: Int -> Picture -> Picture
     center length = translate (-(fromIntegral ((length)*imageSpriteFontSize) / 2.0)) 0
-    centerText :: [Char] -> Map Char Picture -> Picture
+    centerText :: [Char] -> Font -> Picture
     centerText text font = center (length text) $ makeSpriteText text font
 
-drawGameOverScreen :: Map Char Picture -> Int -> Picture
+drawGameOverScreen :: Font -> Int -> Picture
 drawGameOverScreen spriteFont score = 
   pictures
   [ Scale 2 2 $ rowOrder (-2) $ centerText "GAME OVER" spriteFont
@@ -104,12 +106,12 @@ drawGameOverScreen spriteFont score =
     rowOrder number = translate 0 (fromIntegral (-imageSpriteFontSize) * number)
     center :: Int -> Picture -> Picture
     center length = translate (-(fromIntegral ((length)*imageSpriteFontSize) / 2.0)) 0
-    centerText :: [Char] -> Map Char Picture -> Picture
+    centerText :: [Char] -> Font -> Picture
     centerText text font = center (length text) $ makeSpriteText text font 
 
 
 
-drawInfo :: Map Char Picture -> Int -> Int -> Picture
+drawInfo :: Font -> Int -> Int -> Picture
 drawInfo spriteFont health score = 
   pictures
   [ rowOrder 1 $ makeSpriteText ("Health:"++(show health)) spriteFont
@@ -119,15 +121,16 @@ drawInfo spriteFont health score =
     rowOrder :: Float -> Picture -> Picture
     rowOrder number = translate 0 (fromIntegral (-imageSpriteFontSize) * number)
 
-drawControlsInfo :: Map Char Picture -> Picture
+drawControlsInfo :: Font -> Picture
 drawControlsInfo spriteFont = 
   --Scale 0.8 0.8 $ 
   pictures
-  [ rowROrder 4 $ makeSpriteTextTight "CONTROLS" spriteFont
-  , rowROrder 3 $ makeSpriteTextTight "Move :WASD" spriteFont
-  , rowROrder 2 $ makeSpriteTextTight "Shoot:Space" spriteFont
-  , rowROrder 1 $ makeSpriteTextTight "Pause:P" spriteFont
-  , rowROrder 0 $ makeSpriteTextTight "Reset:R" spriteFont
+  [ rowROrder 5 $ makeSpriteTextTight "CONTROLS" spriteFont
+  , rowROrder 4 $ makeSpriteTextTight "Move :WASD" spriteFont
+  , rowROrder 3 $ makeSpriteTextTight "Shoot:Space" spriteFont
+  , rowROrder 2 $ makeSpriteTextTight "Pause:P" spriteFont
+  , rowROrder 1 $ makeSpriteTextTight "Reset:R" spriteFont
+  , rowROrder 0 $ makeSpriteTextTight "Debug:O" spriteFont
   ]
   where
     rowROrder :: Float -> Picture -> Picture
@@ -138,30 +141,29 @@ drawDebugInfo game =
   Scale debugTextScale debugTextScale $ 
     color red $ 
       pictures 
-      [ rowROrder 9 $ Text "DEBUG INFO"
-      , rowROrder 8 $ Text $ "No. of enemies: " ++ 
+      [ rowROrder 8 $ Text "DEBUG INFO"
+      , rowROrder 7 $ Text $ "No. of enemies: " ++ 
                              show (length (enemies game))
-      , rowROrder 7 $ Text $ "No. of asteroids: " ++ 
+      , rowROrder 6 $ Text $ "No. of asteroids: " ++ 
                              show (length (obstaclesAsteroids game))
-      , rowROrder 6 $ Text $ "No. of player projectiles: " ++ 
+      , rowROrder 5 $ Text $ "No. of player projectiles: " ++ 
                              show (length (playerProjectiles game))
-      , rowROrder 5 $ Text $ "No. of enemy projectiles: " ++ 
+      , rowROrder 4 $ Text $ "No. of enemy projectiles: " ++ 
                              show (length (enemyProjectiles game))
-      , rowROrder 4 $ Text "Player:"
-      , rowROrder 3 $ Text $ debugPlayerPosition (player game) 
-      , rowROrder 2 $ Text $ debugPlayerSpeed (player game)
+      , rowROrder 3 $ Text "Player:"
+      , rowROrder 2 $ Text $ debugPlayerPosition (player game) 
       , rowROrder 1 $ Text $ debugPlayerReloadTime (player game)
       ]
   where
     rowROrder :: Float -> Picture -> Picture
     rowROrder number = translate 0 (textHeight * number)
 
-drawPauseScreen :: Map Char Picture -> Picture
+drawPauseScreen :: Font -> Picture
 drawPauseScreen spriteFont =
   centerText "PAUSED" spriteFont
   where
     center :: Int -> Picture -> Picture
     center length = translate (-(fromIntegral ((length)*imageSpriteFontSize) / 2.0)) 0
-    centerText :: [Char] -> Map Char Picture -> Picture
+    centerText :: [Char] -> Font -> Picture
     centerText text font = center (length text) $ makeSpriteText text font
 
