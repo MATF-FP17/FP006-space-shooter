@@ -22,6 +22,9 @@ shipSizeWh = 20         -- half of spaceship's width
 shipSizeHt = 20         -- spaceship's length of front end
 shipSizeHb = 15         -- spaceship's length of back end
 shipSizeHbTail = 8      -- spaceship's back end ignored (for drawing fuel trail)
+shipSizeW, shipSizeH :: Float
+shipSizeW = shipSizeWh * 2  -- full spaceship width
+shipSizeH = shipSizeHt + shipSizeHb + shipSizeHbTail -- full spaceship height
 playerReloadTime = 0.5  -- minimal time between fired projectile 
 projectileSpeed = 200   -- projectile default speed
 enemySizeH, enemySizeW :: Float
@@ -89,11 +92,8 @@ imageOfHealthImproveViolet = "images/health_improve_violet.png"
 
 imageOfAsteroidSmall :: String
 imageOfAsteroidSmall = "images/asteroid_small.png"
-
-
 imageOfAsteroidBig :: String
 imageOfAsteroidBig = "images/asteroid_big.png"
-
 
 imageShipN0, imageShipN1, imageShipN2, imageShipL0, imageShipL1, imageShipL2, imageShipR0, imageShipR1, imageShipR2 :: String
 imageShipN0 = "images/ship_normal_2.png"

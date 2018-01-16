@@ -14,13 +14,12 @@ module GameUpdate
 import Constants
 import GameState 
 import GameDraw
---import GameCollision
 import SpriteCache (sProjectileSprites, sEnemySprites, sAsteroidSpriteSmall, sAsteroidSpriteBig, sHealthImproveSprites)
 import Player (Player, updatePlayer, canPlayerFireProjectile, reloadPlayer, pScore, pPosition, pHealth)
 import Asteroid (Asteroid(Asteroid), updateAsteroid, deleteOutOfBoundsAsteroids)
 import HealthPackage (HealthPackage(HealthPackage), updateHealthPackage, deleteOutOfBoundsHealthPackage)
 import Projectile (Projectile(Projectile), updateProjectile, deleteOutOfBoundsProjectiles, addProjectile)
-import Enemy (Enemy(Enemy), updateEnemy, canEnemyFireProjectile, deleteOutOfBoundsEnemies, reloadEnemy, ePosition)
+import Enemy (Enemy(Enemy), initialEnemyState, updateEnemy, canEnemyFireProjectile, deleteOutOfBoundsEnemies, reloadEnemy, ePosition)
 import SpriteAnimation (SpriteAnimation, makeRepeatingAnimation)
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
@@ -86,7 +85,7 @@ addEnemiesToGame seconds game =
             , generator = gen'}
   where
     gen = generator game
-    newEnemy = Enemy (ex,ey) (sx,sy) enemyInitialReloadTime (sEnemySprites (sprites game))
+    newEnemy = initialEnemyState (ex,ey) (sx,sy) (sEnemySprites (sprites game))
     enemyWidth = 20.0
     (ex,gen') = randomR ((-width /.2 ) + wallBoundWidth + enemyWidth, (width /. 2) - wallBoundWidth - enemyWidth) gen :: (Float, StdGen)
     ey = (height /. 2) - 1.0

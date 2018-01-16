@@ -1,5 +1,6 @@
 module ObjectCollision
-  ( translatePoly
+  ( Pt, Ln, Poly, Circ, Rect
+  , translatePoly
   , translatePoint
   , scalePoint
   , scalePoly
