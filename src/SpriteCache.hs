@@ -8,6 +8,7 @@ module SpriteCache
   , sAsteroidSpriteSmall
   , sAsteroidSpriteBig
   , sSpriteFont
+  , sHealthImproveSprite
   ) where
 
 import Constants
@@ -24,6 +25,7 @@ data SpriteCache = SpriteCache
   , sAsteroidSpriteSmall :: Picture
   , sAsteroidSpriteBig :: Picture
   , sSpriteFont :: Font 
+  , sHealthImproveSprite :: Picture
   } deriving (Show)
   
 loadAllSprites :: SpriteCache
@@ -33,7 +35,8 @@ loadAllSprites = SpriteCache loadProjectileSpirtes
                              loadAsteroidSpriteSmall 
                              loadAsteroidSpriteBig
                              loadSpriteFont
-  
+                             loadHealthSprite   
+
 loadProjectileSpirtes :: [[Picture]]
 loadProjectileSpirtes = 
   [ [ png imageProjectileA1
@@ -135,5 +138,6 @@ loadSpriteFont' =
   , (' ', png imageSpriteFontSpace)
   ]
 
-  
+loadHealthSprite :: Picture
+loadHealthSprite = png imageOfHealthImprove
   

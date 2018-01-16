@@ -13,6 +13,7 @@ import GameState --(GameState(Game,WelcomeScreen,GameOver), player, enemies, obs
 import Player (drawSpaceShip, drawReloadBar, pHealth, pScore, debugPlayerPosition, debugPlayerSpeed, debugPlayerReloadTime)
 import Enemy (drawEnemy)
 import Asteroid (drawAsteroid)
+import HealthPackage (drawHealthPackage)
 import Projectile (drawProjectile)
 import SpriteText (makeSpriteText, makeSpriteTextTight)
 import SpriteCache (Font,sSpriteFont)
@@ -28,7 +29,7 @@ drawGameScreen :: GameState -> Picture
 drawGameScreen game = 
   pictures 
   [ translate (iWidth /. 2) 0 $ 
-      pictures [walls,projectiles,spaceship,reloadBar,asteroids,allEnemies,eProjectiles] -- all game objects
+      pictures [walls,projectiles,spaceship,reloadBar,asteroids,allEnemies,eProjectiles,hPackages] -- all game objects
   , translateToInfoSideBar (height /. 2 ) $ 
       drawInfo (sSpriteFont (sprites game)) (pHealth (player game)) (pScore (player game))
   , translateToInfoSideBar 0 $ 
@@ -78,7 +79,10 @@ drawGameScreen game =
     -- Enemy projectiles
     eProjectiles :: Picture
     eProjectiles = pictures $ map drawProjectile (enemyProjectiles game)
-
+    
+    -- Health packages
+    hPackages :: Picture
+    hPackages = pictures $ map drawHealthPackage (healthPackages game)
 
 drawWelcomeScreen :: Font -> Picture
 drawWelcomeScreen spriteFont =

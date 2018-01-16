@@ -9,6 +9,7 @@ module Player
   , pScore
   , damagePlayer
   , addScoreToPlayer
+  , addHealthToPlayer
   , canPlayerFireProjectile
   , reloadPlayer
   , noMovement
@@ -192,6 +193,9 @@ updatePlayer keysPressed seconds player =
 
 damagePlayer :: Int -> Player -> Player
 damagePlayer damage player = player { pHealth = (pHealth player) - damage }
+
+addHealthToPlayer :: Int -> Player -> Player
+addHealthToPlayer h player = player { pHealth = (pHealth player) + h }
 
 addScoreToPlayer :: Int -> Player -> Player
 addScoreToPlayer score player = player { pScore = (pScore player) + score }

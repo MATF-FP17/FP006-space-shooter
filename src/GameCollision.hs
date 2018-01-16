@@ -3,14 +3,16 @@ module GameCollision
   , handleEnemiesProjectilesCollision
   , handlePlayerAsteroidsCollision
   , handleProjectilesAsteroidsCollision
+  , handlePlayerHealthPackageCollision
   ) where
 
 import Constants
 import GameState 
 import ObjectCollision
 import SpriteCache (sAsteroidSpriteSmall)
-import Player (Player, pPosition, addScoreToPlayer, damagePlayer)
+import Player (Player, pPosition, addScoreToPlayer, damagePlayer, addHealthToPlayer)
 import Asteroid (Asteroid(Asteroid), aPosition, aWidth)
+import HealthPackage (HealthPackage(HealthPackage), hPosition, hWidth)
 import Projectile (Projectile, rPosition)
 import Enemy (Enemy, ePosition)
 import Data.List ((\\), deleteFirstsBy)
@@ -187,6 +189,18 @@ handlePlayerProjectilesCollision game =
     notCollidedProjectiles = filter (not . (checkForPlayerProjectilesCollision' (player game))) projectiles  
     totalDamage = ((length projectiles) - (length notCollidedProjectiles)) * enemyProjectileDamageToPlayer
 
+
+-- | Collision between player and health packages
+handlePlayerHealthPackageCollision :: GameState -> GameState
+handlePlayerHealthPackageCollision game = 
+  game { player = addHealthToPlayer totalImprovement (player game)
+       , healthPackages = notCollidedHP
+       }
+  where 
+    hps = healthPackages game
+    notCollidedHP = filter (not . (checkForPlayerHealthPackagesCollision (player game))) hps  
+    totalImprovement = ((length hps) - (length notCollidedHP)) * healthImprovementNumber
+
 -- | Checks if there is collision between the player and a projectile
 -- Projectile is treated as a circle and Player is treated as a rectangle
 checkForPlayerProjectilesCollision :: Player -> Projectile -> Bool
@@ -216,3 +230,17 @@ checkForPlayerProjectilesCollision' player projectile =
     ph0 = fromIntegral imageShipHeight
     poly = polyFrom $ translatePoly px py $ scalePoly (pw/pw0) (ph/ph0) $ spaceshipObject
     
+-- | Checks if there is collision between the player and a health package
+-- package is treated as a circle and Player is treated as a polygon
+checkForPlayerHealthPackagesCollision :: Player -> HealthPackage -> Bool
+checkForPlayerHealthPackagesCollision player package = 
+  circleIntersectingPoly ((rx,ry),rr) poly
+  where
+    (rx,ry) = hPosition package
+    rr = hWidth package --radius
+    (px,py) = pPosition player
+    pw = shipSizeWh * 2
+    ph = shipSizeHt + shipSizeHb + shipSizeHbTail
+    pw0 = fromIntegral imageShipWidth
+    ph0 = fromIntegral imageShipHeight
+    poly = polyFrom $ translatePoly px py $ scalePoly (pw/pw0) (ph/ph0) $ spaceshipObject

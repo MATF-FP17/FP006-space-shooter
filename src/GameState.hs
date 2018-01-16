@@ -6,6 +6,7 @@ import Player (Player, initialPlayerState)
 import Asteroid (Asteroid)
 import Projectile (Projectile)
 import Enemy (Enemy)
+import HealthPackage (HealthPackage)
 import Graphics.Gloss.Interface.Pure.Game (Key)
 import Data.Set (Set, empty)
 import System.Random (StdGen, mkStdGen)
@@ -17,7 +18,9 @@ data GameState = Game                 -- Game in progress
   , obstaclesAsteroids :: [Asteroid]  -- list of obstcales
   , playerProjectiles :: [Projectile] -- list of projectiles fired by the player
   , enemyProjectiles :: [Projectile]  -- list of projectiles fired by the enemies
+  , healthPackages :: [HealthPackage] -- list of current health packages
   , timeToAddNewEnemy :: Float        -- time left until a new enemy should be added
+  , scoreForAddingHealthPackage :: Int  -- number of points needed for health packages appearing
   , keysPressed :: Set Key            -- keeps track of all keys currently held down
   , paused :: Bool                    -- shows if the game is currently paused
   , showDebug :: Bool                 -- if true debug info is shown on screen
@@ -49,7 +52,9 @@ initialLoadedGameState loadedSprites = Game
   , obstaclesAsteroids = []
   , playerProjectiles = []
   , enemyProjectiles = []
+  , healthPackages = []
   , timeToAddNewEnemy = enemySpawnTime
+  , scoreForAddingHealthPackage = scoreImprovementForHealthPackageAppearing
   , keysPressed = empty
   , paused = False
   , showDebug = False

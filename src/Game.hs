@@ -6,9 +6,10 @@ import Constants
 import GameState 
 import GameDraw
 import GameCollision
-import SpriteCache (sProjectileSprites, sEnemySprites, sAsteroidSpriteSmall, sAsteroidSpriteBig, sSpriteFont)
+import SpriteCache (sProjectileSprites, sEnemySprites, sAsteroidSpriteSmall, sAsteroidSpriteBig, sSpriteFont, sHealthImproveSprite)
 import Player (Player, updatePlayer, canPlayerFireProjectile, reloadPlayer, pScore, pPosition, pHealth)
 import Asteroid (Asteroid(Asteroid), updateAsteroid, deleteOutOfBoundsAsteroids)
+import HealthPackage (HealthPackage(HealthPackage), updateHealthPackage, deleteOutOfBoundsHealthPackage)
 import Projectile (Projectile(Projectile), updateProjectile, deleteOutOfBoundsProjectiles, addProjectile)
 import Enemy (Enemy(Enemy), updateEnemy,canEnemyFireProjectile, deleteOutOfBoundsEnemies, reloadEnemy, ePosition)
 import SpriteAnimation (SpriteAnimation, makeRepeatingAnimation)
@@ -43,6 +44,7 @@ updateObjectsInGame seconds game =
        , obstaclesAsteroids = map (updateAsteroid seconds) (obstaclesAsteroids game)
        , playerProjectiles = map (updateProjectile seconds) (playerProjectiles game)
        , enemyProjectiles = map (updateProjectile seconds) (enemyProjectiles game)
+       , healthPackages = map (updateHealthPackage seconds) (healthPackages game)
        }
 
 -- | Delete all game objects out of bounds from game
@@ -52,6 +54,7 @@ deleteObjectsFromGame game =
        , obstaclesAsteroids = deleteOutOfBoundsAsteroids (obstaclesAsteroids game)
        , playerProjectiles = deleteOutOfBoundsProjectiles (playerProjectiles game) 
        , enemyProjectiles = deleteOutOfBoundsProjectiles (enemyProjectiles game)
+       , healthPackages = deleteOutOfBoundsHealthPackage (healthPackages game)
        }
 
 
@@ -89,10 +92,25 @@ addEnemiesToGame seconds game =
     enemyWidth = 20.0
     (ex,gen') = randomR ((-width /.2 ) + wallBoundWidth + enemyWidth, (width /. 2) - wallBoundWidth - enemyWidth) gen :: (Float, StdGen)
     ey = (height /. 2) - 1.0
-    --(sx,gen'') = randomR (0,0) gen' :: (Float, StdGen)
     sx = 0
     (sy,gen'') = randomR (-75,-25) gen' :: (Float, StdGen)
 
+-- | Add healthPackages to the game
+addHealthPackagesToGame :: Float -> GameState -> GameState
+addHealthPackagesToGame seconds game =
+  if (currentScore > neededScore)
+  then game { scoreForAddingHealthPackage = currentScore + scoreImprovementForHealthPackageAppearing
+            , healthPackages = newPackage : (healthPackages game)}
+  else game 
+  where
+    currentScore = pScore $ player game
+    neededScore = scoreForAddingHealthPackage game
+    gen = generator game
+    (x', gen') = randomR ((-width /.2 ) + wallBoundWidth + 32.0, (width /. 2) - wallBoundWidth - 32.0) gen :: (Float, StdGen) 
+    y'= (height /. 2) - 2.0
+    (speedY, gen'') = randomR (lowestHealthPackageSpeedY, highestHealthPackageSpeedY) gen' ::(Float, StdGen)
+    newPackage = HealthPackage (x',y') widthOfHealthImprove (0.0,speedY) (sHealthImproveSprite (sprites game))
+    
 
 -- | Player fired a projectile
 projectileFiredByPlayer :: GameState -> GameState
@@ -175,12 +193,14 @@ update seconds game = if (pHealth (player game)) <= 0
                         handleInputGameScreen . --must be last
                         addEnemiesToGame seconds .
                         addAsteroidsToGame seconds .
+                        addHealthPackagesToGame seconds .
                         projectilesFiredByEnemies .
                         projectileFiredByPlayer .
                         handlePlayerProjectilesCollision .
                         handleEnemiesProjectilesCollision .
                         handlePlayerAsteroidsCollision .
                         handleProjectilesAsteroidsCollision .
+                        handlePlayerHealthPackageCollision .
                         deleteObjectsFromGame .
                         updateObjectsInGame seconds $ 
                         game
