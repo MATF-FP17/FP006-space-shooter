@@ -15,10 +15,10 @@ import Data.Function (on)
 
 (/.) = (/) `on` fromIntegral -- divides two Integrals as Floats
 
--- | Data describing all properties of a asteroid
+-- | Data describing all properties of a asteroid - circle
 data Asteroid = Asteroid 
      { aPosition :: (Float, Float)  -- asteroid coordinates
-     , aWidth :: Float              -- asteroid width =32
+     , aWidth :: Float              -- asteroid width , radus
      , aSpeed :: (Float, Float)     -- asteroid speed
      , aDegree :: Float             -- rotation degree
      , aPicture :: Picture          -- picture object of the asteroid

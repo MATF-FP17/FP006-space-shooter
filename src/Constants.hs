@@ -66,7 +66,7 @@ enemyObject = [(-13.5,10.5),(-13.5,7.5),(-10.5,-6.5),(-1.5,-14.5),(1.5,-14.5),(1
 
 -- | Healt improvement
 healthImprovementNumber :: Int     -- number of points to add to healthBar
-healthImprovementNumber = 10
+healthImprovementNumber = 5
 
 scoreImprovementForHealthPackageAppearing :: Int
 scoreImprovementForHealthPackageAppearing = 150
@@ -82,9 +82,10 @@ widthOfHealthImprove = 16.0
 
 -- | Images of objects.
 
-imageOfHealthImproveBlue,imageOfHealthImproveRose  :: String
+imageOfHealthImproveBlue,imageOfHealthImproveRose, imageOfHealthImproveViolet  :: String
 imageOfHealthImproveBlue = "images/health_improve_blue.png"
 imageOfHealthImproveRose = "images/health_improve_rose.png"
+imageOfHealthImproveViolet = "images/health_improve_violet.png"
 
 imageOfAsteroidSmall :: String
 imageOfAsteroidSmall = "images/asteroid_small.png"

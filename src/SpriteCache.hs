@@ -8,7 +8,7 @@ module SpriteCache
   , sAsteroidSpriteSmall
   , sAsteroidSpriteBig
   , sSpriteFont
-  , sHealthImproveSprite
+  , sHealthImproveSprites
   ) where
 
 import Constants
@@ -25,7 +25,7 @@ data SpriteCache = SpriteCache
   , sAsteroidSpriteSmall :: Picture
   , sAsteroidSpriteBig :: Picture
   , sSpriteFont :: Font 
-  , sHealthImproveSprite :: [Picture]
+  , sHealthImproveSprites :: [Picture]
   } deriving (Show)
   
 loadAllSprites :: SpriteCache
@@ -142,5 +142,6 @@ loadHealthSprite :: [Picture]
 loadHealthSprite = 
   [ png imageOfHealthImproveBlue
   , png imageOfHealthImproveRose
+  , png imageOfHealthImproveViolet
   ]
   
