@@ -72,26 +72,6 @@ returnProjectileIndices  unfilteredList filteredList = projectileIndices
         projectileIndices = foldl (\acc x -> (fst (snd x)) : acc) [] projectilesForRemoving
 
 
--- | Checks if there is collision between given circle and rectangle
-circleRectangleCollision :: (Float,Float) -- ^ Circle center
-                         -> (Float) -- ^ Circle radius
-                         -> (Float,Float) -- ^ Rectangle center
-                         -> (Float,Float) -- ^ Rectangle width and height
-                         -> Bool -- ^ Result
-circleRectangleCollision (cx,cy) cr (rx,ry) (rw,rh) =
-  if (distanceX > (rw2+cr)) then False
-  else if (distanceY > (rh2+cr)) then False
-  else if (distanceX <= rw2) then True
-  else if (distanceY <= rh2) then True
-  else ( (square(distanceX-rw2) + square(distanceY-rh2)) <= (square cr) )
-  where 
-    rw2 = rw / 2.0
-    rh2 = rh / 2.0
-    distanceX = abs (cx-rx)
-    distanceY = abs (cy-ry)
-    square :: Float -> Float
-    square x = x * x
-
 -- | Collision between asteroids and player
 handlePlayerAsteroidsCollision :: GameState -> GameState
 handlePlayerAsteroidsCollision game =

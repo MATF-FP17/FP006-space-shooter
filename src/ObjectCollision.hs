@@ -10,14 +10,16 @@ module ObjectCollision
   , distancePointToLineSq
   , insidePoly
   , pointLeftOfLine
+  , circleRectangleCollision
   ) where
 
 import Data.List
 
-type   Pt a = (a, a)
-type   Ln a = (Pt a, Pt a)
-type Poly a = [Pt a]
-type Circ a = (Pt a,a)
+type   Pt a = (a, a)       -- Point (x coordinate, y coordinate)
+type   Ln a = (Pt a, Pt a) -- Line Segment (start point, end point)
+type Poly a = [Pt a]       -- Polygon (list of points)
+type Circ a = (Pt a, a)    -- Circle (center point, radius)
+type Rect a = (Pt a, a, a) -- Rectangle (center point, width, height)
  
 -- | Scale all points in a polygon
 translatePoly :: (Ord a, Floating a) => a -> a -> Poly a -> Poly a
@@ -83,4 +85,17 @@ insidePoly point poly = all (pointLeftOfLine point) (linesFrom poly)
 -- | Returns true if point (x,y) is on the left side of the oriented line (px,py),(qx,qy))
 pointLeftOfLine :: (Ord a, Num a) => Pt a -> Ln a -> Bool
 pointLeftOfLine (x,y) ((px,py),(qx,qy)) = (qx-px)*(y-py) >= (qy-py)*(x-px)
-  
+
+-- | Checks if there is collision between given circle and rectangle
+circleRectangleCollision :: (Ord a, Floating a) => Circ a -> Rect a -> Bool
+circleRectangleCollision ((cx,cy),cr) ((rx,ry),rw,rh) =
+  if (distanceX > (rw2+cr)) then False
+  else if (distanceY > (rh2+cr)) then False
+  else if (distanceX <= rw2) then True
+  else if (distanceY <= rh2) then True
+  else ( ((distanceX-rw2)^2 + (distanceY-rh2)^2) <= (cr^2) )
+  where 
+    rw2 = rw / 2.0
+    rh2 = rh / 2.0
+    distanceX = abs (cx-rx)
+    distanceY = abs (cy-ry)
