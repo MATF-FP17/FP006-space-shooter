@@ -41,6 +41,13 @@ highestAsteroidSpeedX = 40.0
 lowestAsteroidSpeedY = -40.0
 highestAsteroidSpeedY = -10.0
 
+widthAsteroidSmall :: Float
+widthAsteroidSmall = 32.0
+
+widthAsteroidBig :: Float
+widthAsteroidBig = 48.0
+
+
 -- | Object interaction and Gameplay
 asteroidDamageToPlayer :: Int --percent of damage taken when colliding with asteroid
 asteroidDamageToPlayer = 20
@@ -68,21 +75,24 @@ lowestHealthPackageSpeedY, highestHealthPackageSpeedY :: Float
 lowestHealthPackageSpeedY = -80.0
 highestHealthPackageSpeedY = -50.0
 
--- | Images of objects.
-imageOfHealthImprove :: String
-imageOfHealthImprove = "images/health_improve.png"
+-- height and width of all related images
 widthOfHealthImprove :: Float
 widthOfHealthImprove = 16.0
+ 
+
+-- | Images of objects.
+
+imageOfHealthImproveBlue,imageOfHealthImproveRose  :: String
+imageOfHealthImproveBlue = "images/health_improve_blue.png"
+imageOfHealthImproveRose = "images/health_improve_rose.png"
 
 imageOfAsteroidSmall :: String
 imageOfAsteroidSmall = "images/asteroid_small.png"
-widthAsteroidSmall :: Float
-widthAsteroidSmall = 32.0
+
 
 imageOfAsteroidBig :: String
 imageOfAsteroidBig = "images/asteroid_big.png"
-widthAsteroidBig :: Float
-widthAsteroidBig = 48.0
+
 
 imageShipN0, imageShipN1, imageShipN2, imageShipL0, imageShipL1, imageShipL2, imageShipR0, imageShipR1, imageShipR2 :: String
 imageShipN0 = "images/ship_normal_2.png"

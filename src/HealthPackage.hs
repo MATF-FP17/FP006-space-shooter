@@ -12,6 +12,7 @@ import Constants
 import Graphics.Gloss.Game
 import Graphics.Gloss
 import Data.Function (on)
+import SpriteAnimation
 
 (/.) = (/) `on` fromIntegral -- divides two Integrals as Floats
 
@@ -20,21 +21,22 @@ data HealthPackage = HealthPackage
      { hPosition :: (Float, Float)  -- package coordinates
      , hWidth :: Float              -- package width 
      , hSpeed :: (Float, Float)     -- package speed
-     , hPicture :: Picture          -- picture object of the asteroid
+     , hAnimation :: SpriteAnimation -- animation of package
      } deriving (Show)
 
  -- | Produces a Picture of a given healt package
 drawHealthPackage :: HealthPackage -> Picture
 drawHealthPackage hp =
    translate rx ry $
-   hPicture hp
+   drawAnimation (hAnimation hp)
      where
        (rx,ry) = hPosition hp
 
 -- | Update health package
 updateHealthPackage :: Float -> HealthPackage -> HealthPackage
 updateHealthPackage seconds hp =
-  hp { hPosition = (nx', ny') }
+  hp { hPosition = (nx', ny') 
+     , hAnimation = updateAnimation seconds (hAnimation hp) }
     where
       (nx,ny) = hPosition hp
       (sx,sy) = hSpeed hp

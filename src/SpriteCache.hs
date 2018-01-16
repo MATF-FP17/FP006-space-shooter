@@ -25,7 +25,7 @@ data SpriteCache = SpriteCache
   , sAsteroidSpriteSmall :: Picture
   , sAsteroidSpriteBig :: Picture
   , sSpriteFont :: Font 
-  , sHealthImproveSprite :: Picture
+  , sHealthImproveSprite :: [Picture]
   } deriving (Show)
   
 loadAllSprites :: SpriteCache
@@ -138,6 +138,9 @@ loadSpriteFont' =
   , (' ', png imageSpriteFontSpace)
   ]
 
-loadHealthSprite :: Picture
-loadHealthSprite = png imageOfHealthImprove
+loadHealthSprite :: [Picture]
+loadHealthSprite = 
+  [ png imageOfHealthImproveBlue
+  , png imageOfHealthImproveRose
+  ]
   

@@ -109,7 +109,9 @@ addHealthPackagesToGame seconds game =
     (x', gen') = randomR ((-width /.2 ) + wallBoundWidth + 32.0, (width /. 2) - wallBoundWidth - 32.0) gen :: (Float, StdGen) 
     y'= (height /. 2) - 2.0
     (speedY, gen'') = randomR (lowestHealthPackageSpeedY, highestHealthPackageSpeedY) gen' ::(Float, StdGen)
-    newPackage = HealthPackage (x',y') widthOfHealthImprove (0.0,speedY) (sHealthImproveSprite (sprites game))
+    animation :: SpriteAnimation
+    animation = makeRepeatingAnimation 0.2 (sHealthImproveSprite (sprites game))
+    newPackage = HealthPackage (x',y') widthOfHealthImprove (0.0,speedY) animation
     
 
 -- | Player fired a projectile
