@@ -79,10 +79,9 @@ intersectionPolyClippingLine poly clipLn = polyFrom $ concatMap (\x ->intersecti
  
 -- Intersect a target polygon with a clipping polygon.  The latter is assumed to
 -- be convex.
-clipTo :: (Fractional a, Ord a) => [Pt a] -> [Pt a] -> [Pt a]
-targPts `clipTo` clipPts = 
-    let targPoly = polyFrom targPts
-        clipLines = linesFrom (polyFrom clipPts)
+clipTo :: (Fractional a, Ord a) => Poly a -> Poly a -> [Pt a]
+targPoly `clipTo` clipPoly = 
+    let clipLines = linesFrom  clipPoly
     in foldl' (intersectionPolyClippingLine) targPoly clipLines
 
 -- Checks if circle is intersecting with polygon

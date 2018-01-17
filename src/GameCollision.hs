@@ -162,12 +162,6 @@ checkForPlayerHealthPackagesCollision :: Player -> HealthPackage -> Bool
 checkForPlayerHealthPackagesCollision player package = 
   not (null (poly1 `clipTo` poly2))
   where
-    rr = hWidth package --radius
-    (px,py) = pPosition player
-    (hx,hy) = hPosition package
-    pw = shipSizeWh * 2
-    ph = shipSizeHt + shipSizeHb + shipSizeHbTail
-    pw0 = fromIntegral imageShipWidth
-    ph0 = fromIntegral imageShipHeight
-    poly1 =  translatePoly px py $ scalePoly (pw/pw0) (ph/ph0) $ spaceshipObject
-    poly2 =  translatePoly hx hy $ heathPackageObject
+   (hx,hy) = hPosition package
+   poly1 =  pShape player
+   poly2 =  polyFrom $ translatePoly hx hy $ heathPackageObject
