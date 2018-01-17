@@ -7,6 +7,7 @@ module Player
   , pPosition
   , pHealth
   , pScore
+  , pShape
   , damagePlayer
   , addScoreToPlayer
   , addHealthToPlayer
@@ -25,6 +26,7 @@ import Graphics.Gloss.Interface.Pure.Game
 import Data.Set (Set, member)
 import Data.Function (on)
 import Numeric (showFFloat)
+import ObjectCollision (Poly, polyFrom, translatePoly, scalePoly)
 
 (/.) = (/) `on` fromIntegral -- divides two Integrals as Floats
 
@@ -67,11 +69,18 @@ data Player = Player
   , pScore :: Int               -- player's score
   , pInReload :: Float          -- time left until a projectile can be fired again
   , pSprites :: [Picture]       -- all sprites of player's spaceship
+  , pShape :: Poly Float        -- shape of player's spaceship (used in collision)
   , pMovement :: Movement       -- direction of last movement
   } deriving Show
   
 initialPlayerState :: [Picture] -> Player
-initialPlayerState sprites = Player (0,(-150)) 100 100 0 0 sprites noMovement
+initialPlayerState sprites = Player (0,(-150)) 100 100 0 0 sprites poly noMovement
+  where
+    pw = shipSizeWh * 2
+    ph = shipSizeHt + shipSizeHb + shipSizeHbTail
+    pw0 = fromIntegral imageShipWidth
+    ph0 = fromIntegral imageShipHeight
+    poly = polyFrom $ translatePoly 0 (-150) $ scalePoly (pw/pw0) (ph/ph0) $ spaceshipObject
   
 debugPlayerPosition :: Player -> String
 debugPlayerPosition player = 
@@ -95,14 +104,12 @@ debugPlayerReloadTime player =
 drawSpaceShip :: Player -> Picture
 drawSpaceShip player = 
   translate px py $
-    Scale (w/wo) ((hb+ht+hbt)/ho) $ 
+    Scale (w/wo) (h/ho) $ 
       (pSprites player)!!(3*hm+vm) -- picks a sprite based of 9 possible movement states
   where
     (px,py) = pPosition player
-    w = shipSizeWh * 2
-    ht = shipSizeHt
-    hb = shipSizeHb
-    hbt = shipSizeHbTail
+    w = shipSizeW
+    h = shipSizeH
     wo = fromIntegral imageShipWidth
     ho = fromIntegral imageShipHeight
     hm = toNumberHorizontalMovement (mHorizontal (pMovement player))
@@ -135,8 +142,9 @@ reloadPlayer player = player { pInReload = playerReloadTime }
 -- | Update the player
 updatePlayer :: Set Key -> Float -> Player -> Player
 updatePlayer keysPressed seconds player =
-  player { pPosition = (nx', ny'), pInReload = nReload,
-           pMovement = Movement nH' nV'
+  player { pPosition = (nx', ny'), pInReload = nReload
+         , pMovement = Movement nH' nV'
+         , pShape = nPoly
          }
     where
       (nx, ny) = pPosition player
@@ -146,27 +154,21 @@ updatePlayer keysPressed seconds player =
       nx' = 
         if (member (Char 'd') keysPressed) 
           || (member (SpecialKey KeyRight) keysPressed)
-        then
-          min (nx + seconds * pSpeed player) (width /. 2 - w)
+        then min (nx + seconds * pSpeed player) (width /. 2 - w)
         else if (member (Char 'a') keysPressed)
           || (member (SpecialKey KeyLeft) keysPressed)
-        then
-          max (nx - seconds * pSpeed player) ((-width) /. 2 + w)
-        else 
-          nx
+        then max (nx - seconds * pSpeed player) ((-width) /. 2 + w)
+        else nx
 
       ny' :: Float
       ny' = 
         if (member (Char 'w') keysPressed) 
           || (member (SpecialKey KeyUp) keysPressed)
-        then
-          min (ny + seconds * pSpeed player) (height /. 2 - shipSizeHt)
+        then min (ny + seconds * pSpeed player) (height /. 2 - shipSizeHt)
         else if (member (Char 's') keysPressed)
           || (member (SpecialKey KeyDown) keysPressed)
-        then
-          max (ny - seconds * pSpeed player) (-height /. 2 + shipSizeHb)
-        else 
-          ny
+        then max (ny - seconds * pSpeed player) (-height /. 2 + shipSizeHb)
+        else ny
       
       nReload :: Float
       nReload = max 0 ((pInReload player) - seconds)
@@ -190,6 +192,11 @@ updatePlayer keysPressed seconds player =
           || (member (SpecialKey KeyDown) keysPressed)
         then DownV
         else NoV
+
+      wo = fromIntegral imageShipWidth
+      ho = fromIntegral imageShipHeight
+      nPoly :: Poly Float
+      nPoly = polyFrom $ translatePoly nx' ny' $ scalePoly (shipSizeW/wo) (shipSizeH/ho) $ spaceshipObject
 
 damagePlayer :: Int -> Player -> Player
 damagePlayer damage player = player { pHealth = (pHealth player) - damage }

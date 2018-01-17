@@ -1,6 +1,8 @@
 module Enemy
   ( Enemy (Enemy) 
+  , initialEnemyState
   , ePosition
+  , eShape
   , drawEnemy
   , updateEnemy
   , canEnemyFireProjectile
@@ -13,6 +15,7 @@ import Graphics.Gloss
 import Graphics.Gloss.Game
 import Graphics.Gloss.Interface.Pure.Game
 import Data.Function (on)
+import ObjectCollision (Poly, polyFrom, translatePoly, scalePoly)
 
 (/.) = (/) `on` fromIntegral -- divides two Integrals as Floats
 
@@ -23,7 +26,16 @@ data Enemy = Enemy
   , eInReload :: Float          -- time left until a projectile can be fired again
   --, eHealth :: Int              -- enemy's health (spaceship's hull integrity)
   , eSprites :: [Picture]       -- all sprites of enemy's spaceship
+  , eShape :: Poly Float        -- shape of enemy's spaceship (used in collision)
   } deriving Show
+  
+initialEnemyState :: (Float,Float) -> (Float,Float) -> [Picture] -> Enemy
+initialEnemyState (ex,ey) (sx,sy) sprites = Enemy (ex,ey) (sx,sy) enemyInitialReloadTime sprites shape
+  where    
+    ew0 = fromIntegral imageEnemyWidth
+    eh0 = fromIntegral imageEnemyHeight
+    shape :: Poly Float
+    shape = polyFrom $ translatePoly ex ey $ scalePoly (enemySizeW/ew0) (enemySizeH/eh0) $ enemyObject
   
 drawEnemy :: Enemy -> Picture
 drawEnemy enemy =
@@ -38,7 +50,9 @@ drawEnemy enemy =
 updateEnemy :: Float -> Enemy -> Enemy
 updateEnemy seconds enemy = 
   enemy { ePosition = (nx', ny') 
-        , eInReload = nReload }
+        , eInReload = nReload 
+        , eShape = nShape
+        }
   where
     (nx,ny) = ePosition enemy
     (sx,sy) = eSpeed enemy
@@ -46,6 +60,10 @@ updateEnemy seconds enemy =
     ny' = ny + seconds * sy 
     nReload :: Float
     nReload = max 0 ((eInReload enemy) - seconds)
+    ew0 = fromIntegral imageEnemyWidth
+    eh0 = fromIntegral imageEnemyHeight
+    nShape :: Poly Float
+    nShape = polyFrom $ translatePoly nx' ny' $ scalePoly (enemySizeW/ew0) (enemySizeH/eh0) $ enemyObject
     
 -- | Checks if an Enemy has exited the screen
 enemyInBounds :: Enemy -> Bool

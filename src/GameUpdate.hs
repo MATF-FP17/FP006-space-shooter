@@ -14,23 +14,20 @@ module GameUpdate
 import Constants
 import GameState 
 import GameDraw
-import GameCollision
-import SpriteCache (sProjectileSprites, sEnemySprites, sAsteroidSpriteSmall, sAsteroidSpriteBig, sSpriteFont, sHealthImproveSprites)
+import SpriteCache (sProjectileSprites, sEnemySprites, sAsteroidSpriteSmall, sAsteroidSpriteBig, sHealthImproveSprites)
 import Player (Player, updatePlayer, canPlayerFireProjectile, reloadPlayer, pScore, pPosition, pHealth)
 import Asteroid (Asteroid(Asteroid), updateAsteroid, deleteOutOfBoundsAsteroids)
 import HealthPackage (HealthPackage(HealthPackage), updateHealthPackage, deleteOutOfBoundsHealthPackage)
 import Projectile (Projectile(Projectile), updateProjectile, deleteOutOfBoundsProjectiles, addProjectile)
-import Enemy (Enemy(Enemy), updateEnemy,canEnemyFireProjectile, deleteOutOfBoundsEnemies, reloadEnemy, ePosition)
+import Enemy (Enemy(Enemy), initialEnemyState, updateEnemy, canEnemyFireProjectile, deleteOutOfBoundsEnemies, reloadEnemy, ePosition)
 import SpriteAnimation (SpriteAnimation, makeRepeatingAnimation)
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
-import Data.Set (insert, delete, member)
+import Data.Set (delete, member)
 import Data.Function (on)
 import System.Random (StdGen, randomR)
 
-
 (/.) = (/) `on` fromIntegral -- divides two Integrals as Floats
-
 
 
 -- | Update all game objects in GameState
@@ -55,6 +52,7 @@ deleteObjectsFromGame game =
        }
 
 
+       
 -- | ADDING GAME OBJECTS
 
 -- | Add asteroids to the game
@@ -87,7 +85,7 @@ addEnemiesToGame seconds game =
             , generator = gen'}
   where
     gen = generator game
-    newEnemy = Enemy (ex,ey) (sx,sy) enemyInitialReloadTime (sEnemySprites (sprites game))
+    newEnemy = initialEnemyState (ex,ey) (sx,sy) (sEnemySprites (sprites game))
     enemyWidth = 20.0
     (ex,gen') = randomR ((-width /.2 ) + wallBoundWidth + enemyWidth, (width /. 2) - wallBoundWidth - enemyWidth) gen :: (Float, StdGen)
     ey = (height /. 2) - 1.0
@@ -154,7 +152,8 @@ makeEnemyProjectile sprites enemy = (Projectile (px,py) (sx,sy) animation)
   animation = makeRepeatingAnimation projectileSpriteChangeInterval sprites
 
 
-
+-- SCREEN/INPUT UPDATE FUNCTION
+  
 -- | Handle user input on WelcomeScreen
 updateWelcomeScreen :: GameState -> GameState
 updateWelcomeScreen game@(WelcomeScreen keysPressed loadedSprites) =
