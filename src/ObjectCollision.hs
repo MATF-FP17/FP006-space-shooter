@@ -86,14 +86,14 @@ targPts `clipTo` clipPts =
     in foldl' (intersectionPolyClippingLine) targPoly clipLines
 
 -- Checks if circle is intersecting with polygon
-circleIntersectingPoly :: (Ord a, Floating a) => Circle a -> Poly a -> Bool
+circleIntersectingPoly :: (Ord a, Floating a) => Circ a -> Poly a -> Bool
 circleIntersectingPoly circ@(center,_) poly =
   inVertexRegion circ poly ||
   inEdgeRegion circ (linesFrom poly) || 
   insidePoly center poly
   
   
-inVertexRegion :: (Ord a, Floating a) => Circle a -> Poly a -> Bool
+inVertexRegion :: (Ord a, Floating a) => Circ a -> Poly a -> Bool
 inVertexRegion (c,cr) poly = any (closePoints cr c) poly
 
 closePoints :: (Ord a, Floating a) => a -> Pt a -> Pt a -> Bool
@@ -104,7 +104,7 @@ closePoints dist p1 p2 = pointDistanceSq p1 p2 <= (dist)^2
 pointDistanceSq :: (Ord a, Floating a) => Pt a -> Pt a -> a
 pointDistanceSq (x1,y1) (x2,y2) = (x1-x2)^2 + (y1-y2)^2
   
-inEdgeRegion :: (Ord a, Floating a) => Circle a -> [Ln a] -> Bool
+inEdgeRegion :: (Ord a, Floating a) => Circ a -> [Ln a] -> Bool
 inEdgeRegion (c,cr) lines = any (closeToLine cr c) lines
 
 closeToLine :: (Ord a, Floating a) => a -> Pt a -> Ln a -> Bool
