@@ -64,12 +64,15 @@ enemyInitialReloadTime = 3
 spaceshipObject = [(-2,21.5),(-13,8.5),(-19,-3.5),(-19,-8.5),(19,-8.5),(19,-3.5),(13,8.5),(2,21.5)] :: [(Float,Float)]
 enemyObject = [(-13.5,10.5),(-13.5,7.5),(-10.5,-6.5),(-1.5,-14.5),(1.5,-14.5),(10.5,-6.5),(13.5,7.5),(13.5,10.5)] :: [(Float,Float)]
 
+heathPackageObject = [(-6.5,6.5),(-6.5,0.5),(0,-5.5),(6.5,0.5),(6.5,6.5)] :: [(Float,Float)]
+
+
 -- | Healt improvement
 healthImprovementNumber :: Int     -- number of points to add to healthBar
 healthImprovementNumber = 5
 
 scoreImprovementForHealthPackageAppearing :: Int
-scoreImprovementForHealthPackageAppearing = 150
+scoreImprovementForHealthPackageAppearing = 100
 
 lowestHealthPackageSpeedY, highestHealthPackageSpeedY :: Float
 lowestHealthPackageSpeedY = -80.0

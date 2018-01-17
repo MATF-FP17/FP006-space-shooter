@@ -18,6 +18,7 @@ import Enemy (Enemy, ePosition)
 import Data.List ((\\), deleteFirstsBy)
 import System.Random (StdGen, randomR)
 
+
 --import Data.Function (on)
 --(/.) = (/) `on` fromIntegral -- divides two Integrals as Floats
 
@@ -234,13 +235,14 @@ checkForPlayerProjectilesCollision' player projectile =
 -- package is treated as a circle and Player is treated as a polygon
 checkForPlayerHealthPackagesCollision :: Player -> HealthPackage -> Bool
 checkForPlayerHealthPackagesCollision player package = 
-  circleIntersectingPoly ((rx,ry),rr) poly
+  not (null (poly1 `clipTo` poly2))
   where
-    (rx,ry) = hPosition package
     rr = hWidth package --radius
     (px,py) = pPosition player
+    (hx,hy) = hPosition package
     pw = shipSizeWh * 2
     ph = shipSizeHt + shipSizeHb + shipSizeHbTail
     pw0 = fromIntegral imageShipWidth
     ph0 = fromIntegral imageShipHeight
-    poly = polyFrom $ translatePoly px py $ scalePoly (pw/pw0) (ph/ph0) $ spaceshipObject
+    poly1 =  translatePoly px py $ scalePoly (pw/pw0) (ph/ph0) $ spaceshipObject
+    poly2 =  translatePoly hx hy $ heathPackageObject
