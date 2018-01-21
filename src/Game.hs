@@ -7,11 +7,10 @@ import GameState
 import GameDraw
 import GameCollision
 import GameUpdate
-import SpriteCache (sProjectileSprites, sEnemySprites, sAsteroidSpriteSmall, sAsteroidSpriteBig, sSpriteFont, sHealthImproveSprites)
-import Player (Player, updatePlayer, canPlayerFireProjectile, reloadPlayer, pScore, pPosition, pHealth)
+import SpriteCache (sSpriteFont)
+import Player (pScore, pHealth)
 import Graphics.Gloss.Interface.Pure.Game
-import Data.Set (insert, delete, member)
-import Data.Function (on)
+import Data.Set (insert, delete)
 
 window :: Display
 window = InWindow "SpaceShooter" (width + iWidth, height) (offset, offset)
@@ -22,8 +21,8 @@ background = black
 -- | Convert a game state into a picture.
 render :: GameState  -- ^ The game state to render.
        -> Picture    -- ^ A picture of this game state.
-render (WelcomeScreen _ sprites) = drawWelcomeScreen (sSpriteFont sprites)
-render (GameOver _ sprites score) = drawGameOverScreen (sSpriteFont sprites) score
+render (WelcomeScreen _ allSprites) = drawWelcomeScreen (sSpriteFont allSprites)
+render (GameOver _ allSprites playerScore) = drawGameOverScreen (sSpriteFont allSprites) playerScore
 render game = drawGameScreen game
 
 -- | Update the game

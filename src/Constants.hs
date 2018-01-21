@@ -64,10 +64,12 @@ enemySpawnTime = 2
 enemyReloadTime, enemyInitialReloadTime :: Float
 enemyReloadTime = 1.9
 enemyInitialReloadTime = 3
-spaceshipObject = [(-2,21.5),(-13,8.5),(-19,-3.5),(-19,-8.5),(19,-8.5),(19,-3.5),(13,8.5),(2,21.5)] :: [(Float,Float)]
-enemyObject = [(-13.5,10.5),(-13.5,7.5),(-10.5,-6.5),(-1.5,-14.5),(1.5,-14.5),(10.5,-6.5),(13.5,7.5),(13.5,10.5)] :: [(Float,Float)]
-
-heathPackageObject = [(-6.5,6.5),(-6.5,0.5),(0,-5.5),(6.5,0.5),(6.5,6.5)] :: [(Float,Float)]
+spaceshipObject :: [(Float,Float)]
+spaceshipObject = [(-2,21.5),(-13,8.5),(-19,-3.5),(-19,-8.5),(19,-8.5),(19,-3.5),(13,8.5),(2,21.5)]
+enemyObject ::  [(Float,Float)]
+enemyObject = [(-13.5,10.5),(-13.5,7.5),(-10.5,-6.5),(-1.5,-14.5),(1.5,-14.5),(10.5,-6.5),(13.5,7.5),(13.5,10.5)]
+healthPackageObject :: [(Float,Float)]
+healthPackageObject = [(-6.5,6.5),(-6.5,0.5),(0,-5.5),(6.5,0.5),(6.5,6.5)]
 
 
 -- | Healt improvement
@@ -153,6 +155,9 @@ projectileSpriteChangeInterval = 0.1 -- time interval between sprites
 -- | SpriteFont
 imageSpriteFontSize :: Int
 imageSpriteFontSize = 20
+imageSpriteFont0, imageSpriteFont1, imageSpriteFont2, imageSpriteFont3, imageSpriteFont4, imageSpriteFont5, imageSpriteFont6, imageSpriteFont7, imageSpriteFont8, imageSpriteFont9 :: String
+imageSpriteFontA, imageSpriteFontB, imageSpriteFontC, imageSpriteFontD, imageSpriteFontE, imageSpriteFontF, imageSpriteFontG, imageSpriteFontH, imageSpriteFontI, imageSpriteFontJ, imageSpriteFontK, imageSpriteFontL, imageSpriteFontM, imageSpriteFontN, imageSpriteFontO, imageSpriteFontP, imageSpriteFontQ, imageSpriteFontR, imageSpriteFontS, imageSpriteFontT, imageSpriteFontU, imageSpriteFontV, imageSpriteFontW, imageSpriteFontX, imageSpriteFontY, imageSpriteFontZ :: String
+imageSpriteFontComma, imageSpriteFontDot, imageSpriteFontDotComma, imageSpriteFontDoubleDot, imageSpriteFontEqual, imageSpriteFontExclamation, imageSpriteFontMinus, imageSpriteFontPlus, imageSpriteFontQuestion, imageSpriteFontSpace :: String
 imageSpriteFont0 = "images/font/0.png"
 imageSpriteFont1 = "images/font/1.png"
 imageSpriteFont2 = "images/font/2.png"

@@ -10,24 +10,27 @@ import Constants
 import GameState 
 import ObjectCollision
 import SpriteCache (sAsteroidSpriteSmall)
-import Player (Player, pPosition, addScoreToPlayer, damagePlayer, addHealthToPlayer, pShape)
+import Player (Player, addScoreToPlayer, damagePlayer, addHealthToPlayer, pShape)
 import Asteroid (Asteroid(Asteroid), aPosition, aWidth)
-import HealthPackage (HealthPackage(HealthPackage), hPosition, hWidth)
+import HealthPackage (HealthPackage, hPosition)
 import Projectile (Projectile, rPosition)
-import Enemy (Enemy, ePosition, eShape)
-import Data.List ((\\), deleteFirstsBy)
+import Enemy (Enemy, eShape)
+import Data.List (deleteFirstsBy)
 import System.Random (StdGen, randomR)
-
 
 --import Data.Function (on)
 --(/.) = (/) `on` fromIntegral -- divides two Integrals as Floats
+
+square :: (Num a) => a -> a
+square x = x*x
 
 -- | Collision between asteroids and projectiles
 handleProjectilesAsteroidsCollision :: GameState -> GameState
 handleProjectilesAsteroidsCollision game =
         game { obstaclesAsteroids = smallerAsteroidsFromBigger ++  map (\x-> snd x) remaindRegularAsteroids 
              , playerProjectiles = map (\x-> snd x) remaindProjectiles
-             , player = addScoreToPlayer score (player game)
+             , player = addScoreToPlayer extraScore (player game)
+             , generator = gen'''''
              }
         where
         asteroids = zip [1..] $ obstaclesAsteroids game
@@ -42,12 +45,12 @@ handleProjectilesAsteroidsCollision game =
         gen = generator game
         (speedX1, gen') = randomR (lowestAsteroidSpeedX, highestAsteroidSpeedX) gen ::(Float, StdGen)
         (speedY1, gen'') = randomR (lowestAsteroidSpeedY,highestAsteroidSpeedY) gen' ::(Float, StdGen)
-        (speedX2, gen''') = randomR (lowestAsteroidSpeedX, highestAsteroidSpeedX) gen'' ::(Float, StdGen)
+        (speedX2, gen''') = randomR (lowestAsteroidSpeedX, highestAsteroidSpeedX) gen'' ::(Float, StdGen) -- speedX2 is unused
         (speedY2, gen'''') = randomR (lowestAsteroidSpeedY,highestAsteroidSpeedY) gen''' ::(Float, StdGen)
         (deg, gen''''') = randomR (15,30) gen'''' ::(Float, StdGen)
         smallerAsteroidsFromBigger = foldl (\acc x ->  (Asteroid (aPosition x) widthAsteroidSmall (speedX1,speedY1) deg (sAsteroidSpriteSmall (sprites game))) : (Asteroid (aPosition x) widthAsteroidSmall ((-speedX1),speedY2) deg (sAsteroidSpriteSmall (sprites game))) : acc) [] bigAsteroidsForRemove
         remaindProjectiles = filter (\x-> (elem (fst x) projectileIndicesForRemove) == False) projectiles
-        score = length asteroidIndicesForRemove * asteroidDestructionScore
+        extraScore = length asteroidIndicesForRemove * asteroidDestructionScore
 
 
 checkForAsteoridProjectileCollision :: Asteroid -> Projectile -> Bool
@@ -57,8 +60,8 @@ checkForAsteoridProjectileCollision asteroid projectile = centerDistance > radiu
         aw = aWidth asteroid / 2 --asteroid radius
         (px, py) = rPosition projectile
         pw = projectileRadius
-        centerDistance = (ax-px)^2 + (ay-py)^2
-        radiusSum = (aw + pw)^2
+        centerDistance = (square (ax-px)) + (square (ay-py))
+        radiusSum = (square (aw + pw))
 
 returnAsteroidIndices :: [((Int , Asteroid),(Int, Projectile))] -> [((Int , Asteroid),(Int, Projectile))]->[Int]
 returnAsteroidIndices  unfilteredList filteredList = asteroidIndices
@@ -92,14 +95,14 @@ checkForPlayerAsteroidCollision player asteroid =
   circleIntersectingPoly ((ax,ay),ar) (pShape player)
   where
     (ax, ay) = aPosition asteroid -- asteroid center
-    ar = (aWidth asteroid) / 2 -- asteroid (circle) radius
+    ar = (aWidth asteroid) / 2.0 -- asteroid (circle) radius
 
 -- | Collision between enemies and projectiles
 handleEnemiesProjectilesCollision :: GameState -> GameState
 handleEnemiesProjectilesCollision game =
   game { enemies = map snd remainingEnemies
        , playerProjectiles = map snd remainingProjectiles
-       , player = addScoreToPlayer score (player game)
+       , player = addScoreToPlayer extraScore (player game)
        }
   where
     indexedEnemies = zip [1..] (enemies game)
@@ -110,7 +113,7 @@ handleEnemiesProjectilesCollision game =
     collidedProjectiles = map snd collidedPairs 
     remainingEnemies = deleteFirstsBy sameIndex indexedEnemies collidedEnemies
     remainingProjectiles = deleteFirstsBy sameIndex indexedProjectiles collidedProjectiles
-    score = ((length indexedEnemies) - (length remainingEnemies)) * enemyDestructionScore
+    extraScore = ((length indexedEnemies) - (length remainingEnemies)) * enemyDestructionScore
     sameIndex :: (Int,a) -> (Int,a) -> Bool
     sameIndex (i1,_) (i2,_) = (i1==i2)
 
@@ -164,4 +167,4 @@ checkForPlayerHealthPackagesCollision player package =
   where
    (hx,hy) = hPosition package
    poly1 =  pShape player
-   poly2 =  polyFrom $ translatePoly hx hy $ heathPackageObject
+   poly2 =  polyFrom $ translatePoly hx hy $ healthPackageObject

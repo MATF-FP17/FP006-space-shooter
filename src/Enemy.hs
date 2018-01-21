@@ -12,11 +12,10 @@ module Enemy
 
 import Constants
 import Graphics.Gloss
-import Graphics.Gloss.Game
-import Graphics.Gloss.Interface.Pure.Game
 import Data.Function (on)
 import ObjectCollision (Poly, polyFrom, translatePoly, scalePoly)
 
+(/.) :: Int -> Int -> Float
 (/.) = (/) `on` fromIntegral -- divides two Integrals as Floats
 
 -- | Data describing all properties of an enemy

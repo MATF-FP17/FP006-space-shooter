@@ -10,7 +10,7 @@ module GameDraw
 
 import Constants
 import GameState --(GameState(Game,WelcomeScreen,GameOver), player, enemies, obstaclesAsteroids, playerProjectiles, enemyProjectiles)
-import Player (drawSpaceShip, drawReloadBar, pHealth, pScore, debugPlayerPosition, debugPlayerSpeed, debugPlayerReloadTime)
+import Player (drawSpaceShip, drawReloadBar, pHealth, pScore, debugPlayerPosition, debugPlayerReloadTime)
 import Enemy (drawEnemy)
 import Asteroid (drawAsteroid)
 import HealthPackage (drawHealthPackage)
@@ -19,9 +19,9 @@ import SpriteText (makeSpriteText, makeSpriteTextTight)
 import SpriteCache (Font,sSpriteFont)
 import Graphics.Gloss (Picture(..), translate, pictures, color, rectangleSolid)
 import Graphics.Gloss.Data.Color
-import Data.Map.Strict (Map)
-
 import Data.Function (on)
+
+(/.) :: Int -> Int -> Float
 (/.) = (/) `on` fromIntegral -- divides two Integrals as Floats
 
 -- DRAW FUNCTIONS --
@@ -56,8 +56,8 @@ drawGameScreen game =
 
     --  The bottom and top walls.
     wall :: Float -> Picture
-    wall offset =
-      translate offset 0 $
+    wall xCoor =
+      translate xCoor 0 $
         color (greyN 0.5) $
           rectangleSolid wallBoundWidth (fromIntegral height)
 
@@ -94,32 +94,32 @@ drawWelcomeScreen spriteFont =
     rowOrder :: Float -> Picture -> Picture
     rowOrder number = translate 0 (fromIntegral (-imageSpriteFontSize) * number)
     center :: Int -> Picture -> Picture
-    center length = translate (-(fromIntegral ((length)*imageSpriteFontSize) / 2.0)) 0
+    center len = translate (-(fromIntegral ((len)*imageSpriteFontSize) / 2.0)) 0
     centerText :: [Char] -> Font -> Picture
     centerText text font = center (length text) $ makeSpriteText text font
 
 drawGameOverScreen :: Font -> Int -> Picture
-drawGameOverScreen spriteFont score = 
+drawGameOverScreen spriteFont playerScore = 
   pictures
   [ Scale 2 2 $ rowOrder (-2) $ centerText "GAME OVER" spriteFont
-  , rowOrder 0 $ centerText ("Score: "++(show score)) spriteFont
+  , rowOrder 0 $ centerText ("Score: "++(show playerScore)) spriteFont
   , rowOrder 2 $ centerText "Press R to restart" spriteFont
   ]
   where
     rowOrder :: Float -> Picture -> Picture
     rowOrder number = translate 0 (fromIntegral (-imageSpriteFontSize) * number)
     center :: Int -> Picture -> Picture
-    center length = translate (-(fromIntegral ((length)*imageSpriteFontSize) / 2.0)) 0
+    center len = translate (-(fromIntegral ((len)*imageSpriteFontSize) / 2.0)) 0
     centerText :: [Char] -> Font -> Picture
     centerText text font = center (length text) $ makeSpriteText text font 
 
 
 
 drawInfo :: Font -> Int -> Int -> Picture
-drawInfo spriteFont health score = 
+drawInfo spriteFont health playerScore = 
   pictures
   [ rowOrder 1 $ makeSpriteText ("Health:"++(show health)) spriteFont
-  , rowOrder 2 $ makeSpriteText ("Score:"++(show score)) spriteFont
+  , rowOrder 2 $ makeSpriteText ("Score:"++(show playerScore)) spriteFont
   ]
   where
     rowOrder :: Float -> Picture -> Picture
@@ -145,7 +145,9 @@ drawDebugInfo game =
   Scale debugTextScale debugTextScale $ 
     color red $ 
       pictures 
-      [ rowROrder 8 $ Text "DEBUG INFO"
+      [ rowROrder 9 $ Text "DEBUG INFO"
+      , rowROrder 8 $ Text $ "No. of health packages: " ++ 
+                             show (length (healthPackages game))
       , rowROrder 7 $ Text $ "No. of enemies: " ++ 
                              show (length (enemies game))
       , rowROrder 6 $ Text $ "No. of asteroids: " ++ 
@@ -167,7 +169,7 @@ drawPauseScreen spriteFont =
   centerText "PAUSED" spriteFont
   where
     center :: Int -> Picture -> Picture
-    center length = translate (-(fromIntegral ((length)*imageSpriteFontSize) / 2.0)) 0
+    center len = translate (-(fromIntegral ((len)*imageSpriteFontSize) / 2.0)) 0
     centerText :: [Char] -> Font -> Picture
     centerText text font = center (length text) $ makeSpriteText text font
 

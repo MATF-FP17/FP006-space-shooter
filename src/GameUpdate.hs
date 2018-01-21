@@ -13,13 +13,12 @@ module GameUpdate
   
 import Constants
 import GameState 
-import GameDraw
 import SpriteCache (sProjectileSprites, sEnemySprites, sAsteroidSpriteSmall, sAsteroidSpriteBig, sHealthImproveSprites)
-import Player (Player, updatePlayer, canPlayerFireProjectile, reloadPlayer, pScore, pPosition, pHealth)
+import Player (updatePlayer, canPlayerFireProjectile, reloadPlayer, pScore, pPosition)
 import Asteroid (Asteroid(Asteroid), updateAsteroid, deleteOutOfBoundsAsteroids)
 import HealthPackage (HealthPackage(HealthPackage), updateHealthPackage, deleteOutOfBoundsHealthPackage)
 import Projectile (Projectile(Projectile), updateProjectile, deleteOutOfBoundsProjectiles, addProjectile)
-import Enemy (Enemy(Enemy), initialEnemyState, updateEnemy, canEnemyFireProjectile, deleteOutOfBoundsEnemies, reloadEnemy, ePosition)
+import Enemy (Enemy, initialEnemyState, updateEnemy, canEnemyFireProjectile, deleteOutOfBoundsEnemies, reloadEnemy, ePosition)
 import SpriteAnimation (SpriteAnimation, makeRepeatingAnimation)
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
@@ -27,6 +26,7 @@ import Data.Set (delete, member)
 import Data.Function (on)
 import System.Random (StdGen, randomR)
 
+(/.) :: Int -> Int -> Float
 (/.) = (/) `on` fromIntegral -- divides two Integrals as Floats
 
 
@@ -57,7 +57,7 @@ deleteObjectsFromGame game =
 
 -- | Add asteroids to the game
 addAsteroidsToGame :: Float -> GameState -> GameState
-addAsteroidsToGame seconds game =
+addAsteroidsToGame _ game =
     game { obstaclesAsteroids = newObstaclesAsteroids, generator = gen'''''' }
     where
     oldObstaclesAsteroids = obstaclesAsteroids game
@@ -82,7 +82,7 @@ addEnemiesToGame seconds game =
   then game { timeToAddNewEnemy = (timeToAddNewEnemy game) - seconds }
   else game { enemies = newEnemy : (enemies game)
             , timeToAddNewEnemy = enemySpawnTime + (timeToAddNewEnemy game)
-            , generator = gen'}
+            , generator = gen''}
   where
     gen = generator game
     newEnemy = initialEnemyState (ex,ey) (sx,sy) (sEnemySprites (sprites game))
@@ -94,10 +94,12 @@ addEnemiesToGame seconds game =
 
 -- | Add healthPackages to the game
 addHealthPackagesToGame :: Float -> GameState -> GameState
-addHealthPackagesToGame seconds game =
+addHealthPackagesToGame _ game =
   if (currentScore > neededScore)
   then game { scoreForAddingHealthPackage = currentScore + scoreImprovementForHealthPackageAppearing
-            , healthPackages = newPackage : (healthPackages game)}
+            , healthPackages = newPackage : (healthPackages game)
+            , generator = gen''
+            }
   else game 
   where
     currentScore = pScore $ player game
@@ -105,7 +107,7 @@ addHealthPackagesToGame seconds game =
     gen = generator game
     (x', gen') = randomR ((-width /.2 ) + wallBoundWidth + 32.0, (width /. 2) - wallBoundWidth - 32.0) gen :: (Float, StdGen) 
     y'= (height /. 2) - 2.0
-    (speedY, gen'') = randomR (lowestHealthPackageSpeedY, highestHealthPackageSpeedY) gen' ::(Float, StdGen)
+    (speedY, gen'') = randomR (lowestHealthPackageSpeedY, highestHealthPackageSpeedY) gen' ::(Float, StdGen) -- gen'' is not used
     animation :: SpriteAnimation
     animation = makeRepeatingAnimation 0.2 (sHealthImproveSprites (sprites game))
     newPackage = HealthPackage (x',y') widthOfHealthImprove (0.0,speedY) animation
@@ -143,28 +145,28 @@ addProjectilesFiredByEnemies game =
 
 -- | Make a projectile that will be fired by the enemy
 makeEnemyProjectile :: [Picture] -> Enemy -> Projectile
-makeEnemyProjectile sprites enemy = (Projectile (px,py) (sx,sy) animation) 
+makeEnemyProjectile spritesP enemy = (Projectile (px,py) (sx,sy) animation) 
   where
   (px,py') = ePosition enemy
   py = py' - (enemySizeH / 2.0)
   (sx,sy) = (0,-projectileSpeed)
   animation :: SpriteAnimation
-  animation = makeRepeatingAnimation projectileSpriteChangeInterval sprites
+  animation = makeRepeatingAnimation projectileSpriteChangeInterval spritesP
 
 
 -- SCREEN/INPUT UPDATE FUNCTION
   
 -- | Handle user input on WelcomeScreen
 updateWelcomeScreen :: GameState -> GameState
-updateWelcomeScreen game@(WelcomeScreen keysPressed loadedSprites) =
-  if null keysPressed -- on any key pressed start the game
+updateWelcomeScreen game@(WelcomeScreen keysPressedSet loadedSprites) =
+  if null keysPressedSet -- on any key pressed start the game
   then game 
   else initialLoadedGameState loadedSprites
 
 -- | Handle user input on GameOver screen
 updateGameOverScreen :: GameState -> GameState
-updateGameOverScreen game@(GameOver keysPressed _ _) =
-  if (member (Char 'r') keysPressed)
+updateGameOverScreen game@(GameOver keysPressedSet _ _) =
+  if (member (Char 'r') keysPressedSet)
   then initialState 
   else game
 

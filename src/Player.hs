@@ -22,12 +22,12 @@ module Player
 import Constants
 import Graphics.Gloss
 import Graphics.Gloss.Game
-import Graphics.Gloss.Interface.Pure.Game
 import Data.Set (Set, member)
 import Data.Function (on)
 import Numeric (showFFloat)
 import ObjectCollision (Poly, polyFrom, translatePoly, scalePoly)
 
+(/.) :: Int -> Int -> Float
 (/.) = (/) `on` fromIntegral -- divides two Integrals as Floats
 
 -- | Data for describing direction of horizontal movement
@@ -202,7 +202,7 @@ damagePlayer :: Int -> Player -> Player
 damagePlayer damage player = player { pHealth = (pHealth player) - damage }
 
 addHealthToPlayer :: Int -> Player -> Player
-addHealthToPlayer h player = player { pHealth = (pHealth player) + h }
+addHealthToPlayer h player = player { pHealth = min 100 $ (pHealth player) + h }
 
 addScoreToPlayer :: Int -> Player -> Player
 addScoreToPlayer score player = player { pScore = (pScore player) + score }

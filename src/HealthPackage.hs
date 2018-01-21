@@ -10,10 +10,10 @@ module HealthPackage
   
 import Constants
 import Graphics.Gloss.Game
-import Graphics.Gloss
-import Data.Function (on)
 import SpriteAnimation
+import Data.Function (on)
 
+(/.) :: Int -> Int -> Float
 (/.) = (/) `on` fromIntegral -- divides two Integrals as Floats
 
 -- | Data describing all properties of a healthBar

@@ -39,12 +39,17 @@ scalePoly x y poly = map (scalePoint x y) poly
 scalePoint :: (Ord a, Floating a) => a -> a -> Pt a -> Pt a
 scalePoint x y (px,py) = (x*px,y*py)
  
-
+-- | Square a number
+square :: (Num t) => t -> t
+square x = x*x
+ 
 -- | Returns polygon from list of points
+polyFrom :: [t] -> [t]
 polyFrom [] = []
 polyFrom points = last points : points
  
 -- | Return a list of lines from a list of points.
+linesFrom :: [t] -> [(t,t)]
 linesFrom [] = []
 linesFrom poly@(_:ps) = zip poly ps
 
@@ -91,41 +96,43 @@ circleIntersectingPoly circ@(center,_) poly =
   inEdgeRegion circ (linesFrom poly) || 
   insidePoly center poly
   
-  
+-- Checks if given circle is colliding with any point on the given polygon
 inVertexRegion :: (Ord a, Floating a) => Circ a -> Poly a -> Bool
 inVertexRegion (c,cr) poly = any (closePoints cr c) poly
 
+-- Checks if points are closer then the given distance
 closePoints :: (Ord a, Floating a) => a -> Pt a -> Pt a -> Bool
-closePoints dist p1 p2 = pointDistanceSq p1 p2 <= (dist)^2
+closePoints dist p1 p2 = pointDistanceSq p1 p2 <= square dist
 
   
 -- Returns squared distance between two points
 pointDistanceSq :: (Ord a, Floating a) => Pt a -> Pt a -> a
-pointDistanceSq (x1,y1) (x2,y2) = (x1-x2)^2 + (y1-y2)^2
+pointDistanceSq (x1,y1) (x2,y2) = (square (x1-x2)) + (square (y1-y2))
   
+-- Checks is given circle is colliding with any line segment in the given list
 inEdgeRegion :: (Ord a, Floating a) => Circ a -> [Ln a] -> Bool
-inEdgeRegion (c,cr) lines = any (closeToLine cr c) lines
+inEdgeRegion (c,cr) lineSegs = any (closeToLine cr c) lineSegs
 
+-- Checks if given point is closer to the given line the the given distance
 closeToLine :: (Ord a, Floating a) => a -> Pt a -> Ln a -> Bool
-closeToLine dist circ line = distancePointToLineSq circ line <= dist^2
-  
+closeToLine dist circ line = distancePointToLineSq circ line <= square dist
+
 -- | Returns squared distance between a point and a line segment
 distancePointToLineSq :: (Ord a, Floating a) => Pt a -> Ln a -> a
 distancePointToLineSq (x,y) ((x1,y1),(x2,y2)) = 
   let dot = ((x-x1)*(x2-x1)) + ((y-y1)*(y2-y1))
-      len_sq = (x2-x1)^2 + (y2-y1)^2
+      len_sq = (square (x2-x1)) + (square (y2-y1))
       param = if len_sq == 0 then 0 else (min 1 $ max 0 (dot / len_sq))
       dx = x1 + param*(x2-x1)
       dy = y1 + param*(y2-y1)
-      dist_sq = (x-dx)^2 + (y-dy)^2
+      dist_sq = (square (x-dx)) + (square (y-dy))
       --dist_sqrt = sqrt dist_sq
   in dist_sq
-  
+
 -- | Returns true if point is inside polygon
 insidePoly :: (Ord a, Floating a) => Pt a -> Poly a -> Bool
 insidePoly point poly = all (pointLeftOfLine point) (linesFrom poly)
 
-  
 
 -- | Checks if there is collision between given circle and rectangle
 circleRectangleCollision :: (Ord a, Floating a) => Circ a -> Rect a -> Bool
@@ -134,7 +141,7 @@ circleRectangleCollision ((cx,cy),cr) ((rx,ry),rw,rh) =
   else if (distanceY > (rh2+cr)) then False
   else if (distanceX <= rw2) then True
   else if (distanceY <= rh2) then True
-  else ( ((distanceX-rw2)^2 + (distanceY-rh2)^2) <= (cr^2) )
+  else ( ((square (distanceX-rw2)) + (square (distanceY-rh2))) <= square (cr) )
   where 
     rw2 = rw / 2.0
     rh2 = rh / 2.0

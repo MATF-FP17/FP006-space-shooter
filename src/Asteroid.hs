@@ -13,6 +13,7 @@ import Graphics.Gloss.Game
 import Graphics.Gloss
 import Data.Function (on)
 
+(/.) :: Int -> Int -> Float
 (/.) = (/) `on` fromIntegral -- divides two Integrals as Floats
 
 -- | Data describing all properties of a asteroid - circle

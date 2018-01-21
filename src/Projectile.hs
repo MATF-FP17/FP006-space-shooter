@@ -10,10 +10,10 @@ module Projectile
 
 import Constants
 import Graphics.Gloss
-import Graphics.Gloss.Interface.Pure.Game
 import Data.Function (on)
 import SpriteAnimation
 
+(/.) :: Int -> Int -> Float
 (/.) = (/) `on` fromIntegral -- divides two Integrals as Floats
 
 -- | Data describing all properties of a projectile
